@@ -1,0 +1,9 @@
+auth_token = ""
+
+count_arm = "2"
+
+count_x86 = "1"
+
+secrets_encryption = "no"
+
+facility = "ewr1"
