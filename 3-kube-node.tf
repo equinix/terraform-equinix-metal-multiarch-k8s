@@ -1,4 +1,4 @@
-module "node_pool" "blue" {
+module "node_pool_blue" {
   source = "modules/node_pool"
 
   kube_token         = "${module.kube_token_1.token}"
@@ -13,3 +13,4 @@ module "node_pool" "blue" {
   controller_address = "${packet_device.k8s_primary.network.0.address}"
   project_id         = "${packet_project.kubernetes_multiarch.id}"
 }
+
