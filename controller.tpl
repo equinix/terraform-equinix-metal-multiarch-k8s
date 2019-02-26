@@ -97,7 +97,7 @@ function apply_workloads {
 	cd /root/kube && \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create namespace metallb-system && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f packet-config.yaml && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metallb.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
