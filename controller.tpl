@@ -44,7 +44,7 @@ data:
     - name: packet-network
       protocol: layer2
       addresses:
-      - $RANGE
+      - ${packet_network_cidr}
 EOF
 }
 

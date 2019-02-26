@@ -3,7 +3,7 @@ data "template_file" "controller" {
 
   vars {
     kube_token          = "${module.kube_token_1.token}"
-    packet_network_cidr = "${cidrhost(packet_reserved_ip_block.kubernetes.cidr_notation,0)}"
+    packet_network_cidr = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
     packet_auth_token   = "${var.auth_token}"
     packet_project_id   = "${packet_project.kubernetes_multiarch.id}"
     kube_version        = "${var.kubernetes_version}"
