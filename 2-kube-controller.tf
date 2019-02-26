@@ -2,8 +2,10 @@ data "template_file" "controller" {
   template = "${file("${path.module}/controller.tpl")}"
 
   vars {
-    kube_token          = "${random_string.kube_init_token_a.result}.${random_string.kube_init_token_b.result}"
-    packet_network_cidr = "${cidrhost(packet_reserved_ip_block.kubernetes.cidr_notation,0)}"
+    kube_token          = "${module.kube_token_1.token}"
+    packet_network_cidr = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
+    packet_auth_token   = "${var.auth_token}"
+    packet_project_id   = "${packet_project.kubernetes_multiarch.id}"
     kube_version        = "${var.kubernetes_version}"
     secrets_encryption  = "${var.secrets_encryption}"
   }

@@ -14,7 +14,7 @@ EOF
 function install_kube_tools {
  echo "Installing Kubeadm tools..." ; \
  swapoff -a  && \
- apt-get update && apt-get install -y apt-transport-https ipcalc
+ apt-get update && apt-get install -y apt-transport-https
  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
  apt-get update
@@ -31,8 +31,6 @@ function init_cluster {
 
 function metal_lb {
     echo "Configuring MetalLB for ${packet_network_cidr}..." && \
-    mkdir /root/kube && \
-    export RANGE=`echo $(ipcalc ${packet_network_cidr} | grep HostMin | awk '{print $2}')-$(ipcalc ${packet_network_cidr} | grep HostMax | awk '{print $2}')` && \
     cat << EOF > /root/kube/metal_lb.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -45,7 +43,24 @@ data:
     - name: packet-network
       protocol: layer2
       addresses:
-      - $RANGE
+      - ${packet_network_cidr}
+EOF
+}
+
+function packet_csi_config {
+  mkdir /root/kube ; \
+  cat << EOF > /root/kube/packet-config.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: packet-cloud-config
+  namespace: kube-system
+stringData:
+  cloud-sa.json: |
+    {
+    "apiKey": "${packet_auth_token}",
+    "projectID": "${packet_project_id}"
+    }
 EOF
 }
 
@@ -79,15 +94,19 @@ acert="/etc/kubernetes/pki/etcd/ca.crt" get /registry/secrets/default/personal-s
 function apply_workloads {
   echo "Applying workloads..." && \
 	cd /root/kube && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create namespace metallb-system && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f *.yaml && \
-  kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f packet-config.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
 
 install_docker && \
 install_kube_tools && \
 sleep 30 && \
 init_cluster && \
+packet_csi_config && \
 metal_lb && \
 sleep 180 && \
 apply_workloads && \
