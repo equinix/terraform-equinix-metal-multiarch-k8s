@@ -11,6 +11,6 @@ module "node_pool_blue" {
   facility           = "${var.facility}"
   cluster_name       = "${var.cluster_name}"
   controller_address = "${packet_device.k8s_primary.network.0.address}"
-  project_id         = "${packet_project.kubernetes_multiarch.id}"
+  project_id         = "${var.project_id}"
 }
 

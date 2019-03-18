@@ -2,6 +2,10 @@ variable "auth_token" {
   description = "Your Packet API key"
 }
 
+variable "project_id" {
+  description = "Packet Project ID"
+}
+
 variable "facility" {
   description = "Packet Facility"
   default     = "ewr1"
@@ -39,7 +43,7 @@ variable "count_x86" {
 
 variable "kubernetes_version" {
   description = "Version of Kubeadm to install"
-  default     = "1.12.3-00"
+  default     = "1.13.1-00"
 }
 
 variable "secrets_encryption" {
