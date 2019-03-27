@@ -13,7 +13,7 @@ data "template_file" "controller" {
 
 resource "packet_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller"
-  operating_system = "ubuntu_16_04"
+  operating_system = "ubuntu_18_04"
   plan             = "${var.plan_primary}"
   facility         = "${var.facility}"
   user_data        = "${data.template_file.controller.rendered}"

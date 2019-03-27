@@ -22,7 +22,7 @@ data "template_file" "node" {
 
 resource "packet_device" "x86_node" {
   hostname         = "${format("${var.cluster_name}-x86-${var.pool_label}-%02d", count.index)}"
-  operating_system = "ubuntu_16_04"
+  operating_system = "ubuntu_18_04"
   count            = "${var.count_x86}"
   plan             = "${var.plan_x86}"
   facility         = "${var.facility}"
@@ -34,7 +34,7 @@ resource "packet_device" "x86_node" {
 
 resource "packet_device" "arm_node" {
   hostname         = "${format("${var.cluster_name}-arm-${var.pool_label}-%02d", count.index)}"
-  operating_system = "ubuntu_16_04"
+  operating_system = "ubuntu_18_04"
   count            = "${var.count_arm}"
   plan             = "${var.plan_arm}"
   facility         = "${var.facility}"
