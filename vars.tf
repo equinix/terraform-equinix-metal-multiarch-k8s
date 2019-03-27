@@ -39,7 +39,7 @@ variable "count_x86" {
 
 variable "kubernetes_version" {
   description = "Version of Kubeadm to install"
-  default     = "1.12.3-00"
+  default     = "1.14.0-00"
 }
 
 variable "secrets_encryption" {
