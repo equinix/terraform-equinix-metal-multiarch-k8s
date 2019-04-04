@@ -110,6 +110,14 @@ packet_csi_config && \
 metal_lb && \
 sleep 180 && \
 apply_workloads && \
+if [ "${configure_ingress}" = "yes" ]; then
+  echo "Configuring Traefik..." ; \
+  echo "Making controller schedulable..." ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master- && \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml
+else
+  echo "Skipping ingress..."
+fi
 if [ "${secrets_encryption}" = "yes" ]; then
   echo "Secrets Encrypted selected...configuring..." && \
   gen_encryption_config && \

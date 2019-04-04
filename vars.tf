@@ -46,3 +46,8 @@ variable "secrets_encryption" {
   description = "Enable at-rest Secrets encryption"
   default     = "no"
 }
+
+variable "configure_ingress" {
+   description = "Configure Traefik"
+   default     = "no"
+}
