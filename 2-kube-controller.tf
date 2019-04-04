@@ -8,6 +8,7 @@ data "template_file" "controller" {
     packet_project_id   = "${packet_project.kubernetes_multiarch.id}"
     kube_version        = "${var.kubernetes_version}"
     secrets_encryption  = "${var.secrets_encryption}"
+    configure_ingress   = "${var.configure_ingress}"
   }
 }
 
