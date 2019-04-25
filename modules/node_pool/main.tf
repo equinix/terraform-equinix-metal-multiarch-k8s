@@ -27,7 +27,7 @@ resource "packet_device" "x86_node" {
   plan             = "${var.plan_x86}"
   facility         = "${var.facility}"
   user_data        = "${data.template_file.node.rendered}"
-  tags             = ["kubernetes", "pool-${var.pool_label}-x86"]
+  tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-x86"]
 
   billing_cycle = "hourly"
   project_id    = "${var.project_id}"
@@ -40,7 +40,7 @@ resource "packet_device" "arm_node" {
   plan             = "${var.plan_arm}"
   facility         = "${var.facility}"
   user_data        = "${data.template_file.node.rendered}"
-  tags             = ["kubernetes", "pool-${var.pool_label}-arm"]
+  tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-arm"]
 
   billing_cycle = "hourly"
   project_id    = "${var.project_id}"
