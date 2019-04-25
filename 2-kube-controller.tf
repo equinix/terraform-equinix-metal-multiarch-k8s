@@ -5,7 +5,7 @@ data "template_file" "controller" {
     kube_token          = "${module.kube_token_1.token}"
     packet_network_cidr = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
     packet_auth_token   = "${var.auth_token}"
-    packet_project_id   = "${packet_project.kubernetes_multiarch.id}"
+    packet_project_id   = "${var.project_id}"
     kube_version        = "${var.kubernetes_version}"
     secrets_encryption  = "${var.secrets_encryption}"
     configure_ingress   = "${var.configure_ingress}"
@@ -18,9 +18,10 @@ resource "packet_device" "k8s_primary" {
   plan             = "${var.plan_primary}"
   facility         = "${var.facility}"
   user_data        = "${data.template_file.controller.rendered}"
+  tags             = ["kubernetes", "controller-${var.cluster_name}"]
 
   billing_cycle = "hourly"
-  project_id    = "${packet_project.kubernetes_multiarch.id}"
+  project_id    = "${var.project_id}"
 }
 
 resource "packet_ip_attachment" "kubernetes_lb_block" {

@@ -3,12 +3,8 @@ provider "packet" {
   auth_token = "${var.auth_token}"
 }
 
-resource "packet_project" "kubernetes_multiarch" {
-  name = "Kubernetes (Multi-Arch)"
-}
-
 resource "packet_reserved_ip_block" "kubernetes" {
-  project_id = "${packet_project.kubernetes_multiarch.id}"
+  project_id = "${var.project_id}"
   facility   = "${var.facility}"
   quantity   = 2
 }

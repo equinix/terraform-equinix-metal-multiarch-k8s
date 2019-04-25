@@ -7,6 +7,10 @@ variable "facility" {
   default     = "ewr1"
 }
 
+variable "project_id" {
+  description = "Packet Project ID"
+}
+
 variable "plan_arm" {
   description = "Plan for K8s ARM Nodes"
   default     = "baremetal_2a"
@@ -48,6 +52,6 @@ variable "secrets_encryption" {
 }
 
 variable "configure_ingress" {
-   description = "Configure Traefik"
-   default     = "no"
+  description = "Configure Traefik"
+  default     = "no"
 }
