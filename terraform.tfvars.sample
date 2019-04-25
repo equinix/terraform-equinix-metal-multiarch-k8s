@@ -1,5 +1,7 @@
 auth_token = ""
 
+project_id = ""
+
 count_arm = "2"
 
 count_x86 = "1"
