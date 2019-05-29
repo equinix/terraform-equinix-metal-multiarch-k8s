@@ -9,6 +9,8 @@ data "template_file" "controller" {
     kube_version        = "${var.kubernetes_version}"
     secrets_encryption  = "${var.secrets_encryption}"
     configure_ingress   = "${var.configure_ingress}"
+    count               = "${var.count_x86}"
+    ceph                = "${var.ceph}"
   }
 }
 

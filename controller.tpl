@@ -64,6 +64,27 @@ stringData:
 EOF
 }
 
+function ceph_rook_basic {
+  cd /root/kube ; \
+  mkdir ceph ; \
+  wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/common.yaml && \
+  wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/operator.yaml && \
+  if [ "${count}" -gt 3 ]; then
+	echo "Node count less than 3, creating minimal cluster" ; \
+  	wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster-minimal.yaml
+  else 
+  	wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster.yaml
+  fi
+  echo "Pulled Manifest for Ceph-Rook..." && \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f common.yaml ; \
+  sleep 30 ; \
+  echo "Applying Ceph Operator..." ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f operator.yaml ; \
+  sleep 30 ; \
+  echo "Creating Ceph Cluster..." ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f cluster*
+}
+
 function gen_encryption_config {
   echo "Generating EncryptionConfig for cluster..." && \
   export BASE64_STRING=$(head -c 32 /dev/urandom | base64) && \
@@ -110,6 +131,12 @@ packet_csi_config && \
 metal_lb && \
 sleep 180 && \
 apply_workloads && \
+if [ "${ceph}" = "yes" ]; then
+  echo "Configuring Ceph Operator" ; \
+  ceph_rook_basic
+else
+  echo "Skipping Ceph Operator setup..."
+fi
 if [ "${configure_ingress}" = "yes" ]; then
   echo "Configuring Traefik..." ; \
   echo "Making controller schedulable..." ; \
