@@ -55,3 +55,8 @@ variable "configure_ingress" {
   description = "Configure Traefik"
   default     = "no"
 }
+
+variable "ceph" {
+  description = "Configure Ceph Operator"
+  default     = "no"
+}
