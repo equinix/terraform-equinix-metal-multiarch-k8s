@@ -7,7 +7,7 @@ clusters:
 - cluster:
     certificate-authority-data: {{ ca_cert }}
     # You'll need the API endpoint of your Cluster here:
-    server: https://127.0.0.1:6443
+    server: https://{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:6443
   name: default
 
 # Define the user
