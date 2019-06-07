@@ -1,0 +1,6 @@
+---
+- hosts:
+    - controllers
+  become: true
+  roles:
+    - { role: rbac, kube_users: ["user1","user2"], namespace: "applications" }

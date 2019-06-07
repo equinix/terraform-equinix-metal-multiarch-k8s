@@ -1,0 +1,20 @@
+---
+- name: Create Namespace
+  template:
+    src: templates/namespace.yaml.j2
+    dest: "/root/{{ namespace }}-ns.yaml"
+  vars:
+    namespace: "{{ namespace }}"
+- name: Apply Namespace
+  command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/{{ namespace }}-ns.yaml"
+  vars:
+    namespace: "{{ namespace }}"
+- name: Roles Creation
+  template:
+    src: templates/roles.yaml.j2
+    dest: /root/roles.yaml
+  vars:
+    namespace: "{{ namespace }}"
+- name: Generate Configs  
+  include: user.yml user={{ item }}
+  with_items: "{{ kube_users }}"
