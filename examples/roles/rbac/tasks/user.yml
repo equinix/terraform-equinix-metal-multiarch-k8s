@@ -1,0 +1,29 @@
+- name: Creates Role Binding for kube_users
+  template:
+    src: templates/binding.yaml.j2
+    dest: /root/{{ user }}-binding.yaml
+  vars:
+    user: "{{ user }}"
+    namespace: "{{ namespace }}"
+- name: Apply RoleBinding for User
+  command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/{{ user }}-binding.yaml"
+  vars:
+    user: "{{ user }}"
+- name: Get User Secret
+  command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf get sa {{ user }} -n {{ namespace }} -o 'jsonpath={.secrets[].name}'"
+  register: user_secret
+- name: Get User Token
+  command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf get secret {{ user_secret.stdout_lines.0 }} -n {{ namespace }} -o jsonpath={.data.token}"
+  register: user_token
+- name: Get User Certificate
+  command: "kubectl --kubeconfig=/etc/kubernetes/admin.conf get secret {{ user_secret.stdout_lines.0 }} -n {{ namespace }} -o \"jsonpath={.data['ca.crt']}\""
+  register: user_certificate
+- name: Creates Role Binding for kube_users
+  template:
+    src: templates/config.yaml.j2
+    dest: /root/{{ user }}-kubeconfig.yaml
+  vars:
+    user: "{{ user }}"
+    namespace: "{{ namespace }}"
+    ca_cert: "{{ user_certificate.stdout }}"
+    user_cert: "{{ user_certificate.stdout }}"
