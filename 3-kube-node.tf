@@ -1,5 +1,5 @@
 module "node_pool_blue" {
-  source = "modules/node_pool"
+  source = "./modules/node_pool"
 
   kube_token         = "${module.kube_token_1.token}"
   kubernetes_version = "${var.kubernetes_version}"

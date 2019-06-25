@@ -13,7 +13,7 @@ variable "project_id" {}
 data "template_file" "node" {
   template = "${file("${path.module}/node.tpl")}"
 
-  vars {
+  vars = {
     kube_token      = "${var.kube_token}"
     primary_node_ip = "${var.controller_address}"
     kube_version    = "${var.kubernetes_version}"
@@ -25,7 +25,7 @@ resource "packet_device" "x86_node" {
   operating_system = "ubuntu_18_04"
   count            = "${var.count_x86}"
   plan             = "${var.plan_x86}"
-  facility         = "${var.facility}"
+  facilities       = ["${var.facility}"]
   user_data        = "${data.template_file.node.rendered}"
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-x86"]
 
@@ -38,7 +38,7 @@ resource "packet_device" "arm_node" {
   operating_system = "ubuntu_18_04"
   count            = "${var.count_arm}"
   plan             = "${var.plan_arm}"
-  facility         = "${var.facility}"
+  facilities       = ["${var.facility}"]
   user_data        = "${data.template_file.node.rendered}"
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-arm"]
 

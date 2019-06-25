@@ -1,7 +1,7 @@
 data "template_file" "controller" {
   template = "${file("${path.module}/controller.tpl")}"
 
-  vars {
+  vars = {
     kube_token          = "${module.kube_token_1.token}"
     packet_network_cidr = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
     packet_auth_token   = "${var.auth_token}"
@@ -18,7 +18,7 @@ resource "packet_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller"
   operating_system = "ubuntu_18_04"
   plan             = "${var.plan_primary}"
-  facility         = "${var.facility}"
+  facilities       = ["${var.facility}"]
   user_data        = "${data.template_file.controller.rendered}"
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
 
