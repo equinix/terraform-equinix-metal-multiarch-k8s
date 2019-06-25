@@ -11,6 +11,11 @@ function install_docker() {
 EOF
 }
 
+function enable_docker() {
+ systemctl enable docker ; \
+ systemctl start docker
+}
+
 function install_kube_tools {
  echo "Installing Kubeadm tools..." ; \
  swapoff -a  && \
@@ -124,6 +129,7 @@ function apply_workloads {
 }
 
 install_docker && \
+enable_docker && \
 install_kube_tools && \
 sleep 30 && \
 init_cluster && \

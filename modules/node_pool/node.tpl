@@ -10,6 +10,11 @@ function install_docker() {
 EOF
 }
 
+function enable_docker() {
+ systemctl enable docker ; \
+ systemctl start docker
+}
+
 function install_kube_tools() {
  swapoff -a  && \
  apt-get update && apt-get install -y apt-transport-https
@@ -26,6 +31,7 @@ function join_cluster() {
 }
 
 install_docker && \
+enable_docker && \
 install_kube_tools && \
 sleep 180 && \
 join_cluster
