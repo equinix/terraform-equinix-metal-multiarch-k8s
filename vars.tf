@@ -60,3 +60,13 @@ variable "ceph" {
   description = "Configure Ceph Operator"
   default     = "no"
 }
+
+variable "skip_workloads" {
+  description = "Skip Packet workloads (CSI, MetalLB)"
+  default = "no"
+}
+
+variable "configure_network" {
+  description = "Configures network for cluster"
+  default = "yes"
+}
