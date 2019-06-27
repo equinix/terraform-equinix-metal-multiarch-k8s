@@ -11,6 +11,8 @@ data "template_file" "controller" {
     configure_ingress   = "${var.configure_ingress}"
     count               = "${var.count_x86}"
     ceph                = "${var.ceph}"
+    configure_network   = "${var.configure_network}"
+    skip_workloads      = "${var.skip_workloads}"
   }
 }
 

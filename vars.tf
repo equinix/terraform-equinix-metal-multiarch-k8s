@@ -43,7 +43,7 @@ variable "count_x86" {
 
 variable "kubernetes_version" {
   description = "Version of Kubeadm to install"
-  default     = "1.14.0-00"
+  default     = "1.15.0-00"
 }
 
 variable "secrets_encryption" {
@@ -59,4 +59,14 @@ variable "configure_ingress" {
 variable "ceph" {
   description = "Configure Ceph Operator"
   default     = "no"
+}
+
+variable "skip_workloads" {
+  description = "Skip Packet workloads (CSI, MetalLB)"
+  default = "no"
+}
+
+variable "configure_network" {
+  description = "Configures network for cluster"
+  default = "yes"
 }

@@ -11,6 +11,11 @@ function install_docker() {
 EOF
 }
 
+function enable_docker() {
+ systemctl enable docker ; \
+ systemctl start docker
+}
+
 function install_kube_tools {
  echo "Installing Kubeadm tools..." ; \
  swapoff -a  && \
@@ -26,6 +31,9 @@ function init_cluster {
     kubeadm init --pod-network-cidr=10.244.0.0/16 --token "${kube_token}" && \
     sysctl net.bridge.bridge-nf-call-iptables=1; \
     # kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl --kubeconfig=/etc/kubernetes/admin.conf version | base64 | tr -d '\n')"
+}
+
+function configure_network {
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
 }
 
@@ -124,13 +132,23 @@ function apply_workloads {
 }
 
 install_docker && \
+enable_docker && \
 install_kube_tools && \
 sleep 30 && \
 init_cluster && \
 packet_csi_config && \
 metal_lb && \
 sleep 180 && \
-apply_workloads && \
+if [ "${configure_network}" = "no" ]; then
+  echo "Not configuring network"
+else
+  configure_network
+fi
+if [ "${skip_workloads}" = "yes" ]; then
+  echo "Skipping workloads..."
+else
+  apply_workloads
+fi
 if [ "${ceph}" = "yes" ]; then
   echo "Configuring Ceph Operator" ; \
   ceph_rook_basic
