@@ -1,6 +1,8 @@
 Multi-Architecture Kubernetes on Packet
 ==
 
+[![Build Status](https://cloud.drone.io/api/badges/packet-labs/packet-multiarch-k8s-terraform/status.svg)](https://cloud.drone.io/packet-labs/packet-multiarch-k8s-terraform)
+
 This is a [Terraform](https://www.terraform.io/docs/providers/packet/index.html) project for deploying Kubernetes on [Packet](https://packet.com) with node pools of x86 and ARM devices. 
 
 This project configures your cluster with:
