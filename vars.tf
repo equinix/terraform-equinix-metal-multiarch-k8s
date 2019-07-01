@@ -63,10 +63,15 @@ variable "ceph" {
 
 variable "skip_workloads" {
   description = "Skip Packet workloads (CSI, MetalLB)"
-  default = "no"
+  default     = "no"
 }
 
 variable "configure_network" {
   description = "Configures network for cluster"
-  default = "yes"
+  default     = "yes"
+}
+
+variable "network" {
+  description = "Configures Kube Network (flannel or calico)"
+  default     = "calico"
 }

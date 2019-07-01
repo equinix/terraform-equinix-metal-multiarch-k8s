@@ -28,13 +28,20 @@ function install_kube_tools {
 
 function init_cluster {
     echo "Initializing cluster..." && \
-    kubeadm init --pod-network-cidr=10.244.0.0/16 --token "${kube_token}" && \
-    sysctl net.bridge.bridge-nf-call-iptables=1; \
-    # kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl --kubeconfig=/etc/kubernetes/admin.conf version | base64 | tr -d '\n')"
+    if [ "${network}" = "calico" ]; then
+      kubeadm init --pod-network-cidr=192.168.0.0/16 --token "${kube_token}"
+    else
+      kubeadm init --pod-network-cidr=10.244.0.0/16 --token "${kube_token}"
+    fi
+    sysctl net.bridge.bridge-nf-call-iptables=1
 }
 
 function configure_network {
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
+  if [ "${network}" = "calico" ]; then
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://docs.projectcalico.org/v3.7/manifests/calico.yaml  
+  else
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml
+  fi
 }
 
 function metal_lb {
