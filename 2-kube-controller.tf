@@ -13,6 +13,7 @@ data "template_file" "controller" {
     ceph                = "${var.ceph}"
     configure_network   = "${var.configure_network}"
     skip_workloads      = "${var.skip_workloads}"
+    network             = "${var.network}"
   }
 }
 
