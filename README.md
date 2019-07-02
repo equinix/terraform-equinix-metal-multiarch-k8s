@@ -55,3 +55,32 @@ On your controller, [add your new token](https://kubernetes.io/docs/reference/se
 terraform apply -target=module.node_pool_green
 ```
 At which point, you can either destroy the old pool, or taint/evict pods, etc. once this new pool connects.
+
+GPU Node Pools
+-
+
+The `gpu_node_pool` module provisions and configures GPU nodes for use with your Kubernetes cluster. The module definition requires `count_gpu` (defaults to "0"), and `plan_gpu` (defaults to `g2.large`):
+
+```hcl
+module "node_pool_gpu_green" {
+  source = "./modules/gpu_node_pool"
+
+  kube_token         = "${module.kube_token_1.token}"
+  kubernetes_version = "${var.kubernetes_version}"
+  pool_label         = "gpu_green"
+  count_gpu          = "${var.count_gpu}"
+  plan_gpu           = "${var.plan_gpu}"
+  facility           = "${var.facility}"
+  cluster_name       = "${var.cluster_name}"
+  controller_address = "${packet_device.k8s_primary.network.0.address}"
+  project_id         = "${var.project_id}"
+}
+```
+
+and upon applying your GPU pool:
+
+```bash
+terraform apply -target=module.node_pool_gpu_green
+```
+
+you can manage this pool discretely from your mixed-architecture pools created with the `node_pool` module above. 
