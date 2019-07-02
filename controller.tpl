@@ -44,6 +44,14 @@ function configure_network {
   fi
 }
 
+function gpu_config {
+  if [ "${count_gpu}" = "0" ]; then
+	echo "No GPU nodes to prepare for presently...moving on..."
+  else
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta/nvidia-device-plugin.yml
+  fi
+}
+
 function metal_lb {
     echo "Configuring MetalLB for ${packet_network_cidr}..." && \
     cat << EOF > /root/kube/metal_lb.yaml
@@ -155,6 +163,11 @@ if [ "${skip_workloads}" = "yes" ]; then
   echo "Skipping workloads..."
 else
   apply_workloads
+fi
+if [ "${count_gpu}" = "0" ]; then
+  echo "Skipping GPU enable..."
+else
+  gpu_enable
 fi
 if [ "${ceph}" = "yes" ]; then
   echo "Configuring Ceph Operator" ; \

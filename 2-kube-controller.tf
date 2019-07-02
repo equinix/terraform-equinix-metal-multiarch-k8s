@@ -10,6 +10,7 @@ data "template_file" "controller" {
     secrets_encryption  = "${var.secrets_encryption}"
     configure_ingress   = "${var.configure_ingress}"
     count               = "${var.count_x86}"
+    count_gpu           = "${var.count_gpu}"
     ceph                = "${var.ceph}"
     configure_network   = "${var.configure_network}"
     skip_workloads      = "${var.skip_workloads}"
