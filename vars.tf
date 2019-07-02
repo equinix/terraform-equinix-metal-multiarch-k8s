@@ -21,6 +21,11 @@ variable "plan_x86" {
   default     = "baremetal_0"
 }
 
+variable "plan_gpu" {
+  description = "Plan for GPU equipped nodes"
+  default     = "g2.large"
+}
+
 variable "plan_primary" {
   description = "K8s Primary Plan (Defaults to x86 - baremetal_0)"
   default     = "baremetal_0"
@@ -39,6 +44,11 @@ variable "count_arm" {
 variable "count_x86" {
   default     = "3"
   description = "Number of x86 nodes."
+}
+
+variable "count_gpu" {
+  default     = "0"
+  description = "Number of GPU nodes."
 }
 
 variable "kubernetes_version" {
