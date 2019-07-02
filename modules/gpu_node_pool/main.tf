@@ -24,7 +24,7 @@ resource "packet_device" "gpu_node" {
   count            = "${var.count_gpu}"
   plan             = "${var.plan_gpu}"
   facilities       = ["${var.facility}"]
-  user_data        = "${data.template_file.node.rendered}"
+  user_data        = "${data.template_file.gpu_node.rendered}"
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-gpu"]
 
   billing_cycle = "hourly"
