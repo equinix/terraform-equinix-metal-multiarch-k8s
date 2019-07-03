@@ -3,7 +3,7 @@ Multi-Architecture Kubernetes on Packet
 
 [![Build Status](https://cloud.drone.io/api/badges/packet-labs/packet-multiarch-k8s-terraform/status.svg)](https://cloud.drone.io/packet-labs/packet-multiarch-k8s-terraform)
 
-This is a [Terraform](https://www.terraform.io/docs/providers/packet/index.html) project for deploying Kubernetes on [Packet](https://packet.com) with node pools of x86 and ARM devices. 
+This is a [Terraform](https://www.terraform.io/docs/providers/packet/index.html) project for deploying Kubernetes on [Packet](https://packet.com) with node pools of mixed architecture--x86 and ARM- devices, and pools of GPU devices, via the `node_pool` and `gpu_node_pool` modules for managing Kubernetes nodes.  
 
 This project configures your cluster with:
 
