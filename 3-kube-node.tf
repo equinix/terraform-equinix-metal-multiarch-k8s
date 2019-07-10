@@ -10,7 +10,7 @@ module "node_pool_blue" {
   plan_arm           = "${var.plan_arm}"
   facility           = "${var.facility}"
   cluster_name       = "${var.cluster_name}"
-  controller_address = "${packet_device.k8s_primary.network.0.address}"
+  controller_address = "${module.controllers.controller_addresses}"
   project_id         = "${var.project_id}"
 }
 
@@ -24,6 +24,6 @@ module "node_pool_gpu_green" {
   plan_gpu           = "${var.plan_gpu}"
   facility           = "${var.facility}"
   cluster_name       = "${var.cluster_name}"
-  controller_address = "${packet_device.k8s_primary.network.0.address}"
+  controller_address = "${module.controllers.controller_addresses}"
   project_id         = "${var.project_id}"
 }
