@@ -17,6 +17,39 @@ The only required variables are `auth_token` (your [Packet API](https://www.pack
 
 Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Packet location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
 
+High Availability for Control Plane Nodes
+-
+
+This is not enabled by default, however, setting `control_plane_node_count` to any non-`0` value will provision a stacked control plane node and join the cluster as a master. This requires `ssh_private_key_path` be set in order to complete setup; this is used only locally to distribute certificates.
+
+
+Instantiating a new controller pool just requires a new instance of the `controller_pool` module:
+
+```
+module "controller_pool_primary" {
+  source = "./modules/controller_pool"
+
+  kube_token               = "${module.kube_token_1.token}"
+  kubernetes_version       = "${var.kubernetes_version}"
+  count_x86                = "${var.count_x86}"
+  count_gpu                = "${var.count_gpu}"
+  plan_primary             = "${var.plan_primary}"
+  facility                 = "${var.facility}"
+  cluster_name             = "${var.cluster_name}"
+  kubernetes_lb_block      = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
+  project_id               = "${var.project_id}"
+  auth_token               = "${var.auth_token}"
+  secrets_encryption       = "${var.secrets_encryption}"
+  configure_ingress        = "${var.configure_ingress}"
+  ceph                     = "${var.ceph}"
+  configure_network        = "${var.configure_network}"
+  skip_workloads           = "${var.skip_workloads}"
+  network                  = "${var.network}"
+  control_plane_node_count = "${var.control_plane_node_count}"
+  ssh_private_key_path     = "${var.ssh_private_key_path}"
+}
+```
+
 Node Pool Management
 -
 
