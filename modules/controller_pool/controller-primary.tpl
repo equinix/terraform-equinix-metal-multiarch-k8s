@@ -6,14 +6,14 @@ function install_docker() {
  apt-get install -y docker.io && \
  cat << EOF > /etc/docker/daemon.json
  {
-   "exec-opts": ["native.cgroupdriver=cgroupfs"]
+   "exec-opts": ["native.cgroupdriver=systemd"]
  }
 EOF
 }
 
 function enable_docker() {
  systemctl enable docker ; \
- systemctl start docker
+ systemctl restart docker
 }
 
 function install_kube_tools {
@@ -26,10 +26,36 @@ function install_kube_tools {
  apt-get install -y kubelet=${kube_version} kubeadm=${kube_version} kubectl=${kube_version}
 }
 
+function init_cluster_config {
+      if [ "${network}" = "calico" ]; then
+        export POD_NETWORK="192.168.0.0/16"
+      else
+        export POD_NETWORK="10.244.0.0/16"
+      fi
+      cat << EOF > /etc/kubeadm-config.yaml
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: InitConfiguration
+bootstrapTokens:
+- token: "${kube_token}"
+  description: "default kubeadm bootstrap token"
+  ttl: "0"
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+kubernetesVersion: stable
+controlPlaneEndpoint: "$(curl -s http://metadata.packet.net/metadata | jq -r '.network.addresses[] | select(.public == true) | select(.management == true) | select(.address_family == 4) | .address'):6443"
+networking:
+  podSubnet: $POD_NETWORK
+certificatesDir: /etc/kubernetes/pki
+EOF
+    kubeadm init --config=/etc/kubeadm-config.yaml ; \
+    kubeadm init phase upload-certs --upload-certs
+}
+
 function init_cluster {
     echo "Initializing cluster..." && \
     if [ "${network}" = "calico" ]; then
-      kubeadm init --pod-network-cidr=192.168.0.0/16 --token "${kube_token}"
+      kubeadm init --pod-network-cidr=192.168.0.0/16 --token "${kube_token}" 
     else
       kubeadm init --pod-network-cidr=10.244.0.0/16 --token "${kube_token}"
     fi
@@ -150,7 +176,13 @@ install_docker && \
 enable_docker && \
 install_kube_tools && \
 sleep 30 && \
-init_cluster && \
+if [ "${control_plane_node_count}" = "0" ]; then
+  echo "No control plane nodes provisioned, initializing single master..." ; \
+  init_cluster
+else
+  echo "Writing config for control plane nodes..." ; \
+  init_cluster_config
+fi
 packet_csi_config && \
 metal_lb && \
 sleep 180 && \

@@ -85,3 +85,13 @@ variable "network" {
   description = "Configures Kube Network (flannel or calico)"
   default     = "calico"
 }
+
+variable "control_plane_node_count" {
+  description = "Number of control plane nodes (in addition to the primary controller)"
+  default     = "0"
+}
+
+variable "ssh_private_key_path" {
+  description = "Path to SSH private key-- this is only used for control plane node spin-up locally; is not used if control_plane_node_count set to 0."
+  default     = ""
+}
