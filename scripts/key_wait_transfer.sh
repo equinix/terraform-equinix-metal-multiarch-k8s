@@ -16,5 +16,5 @@ scp -3 -i $ssh_private_key_path -o StrictHostKeyChecking=no -o UserKnownHostsFil
 scp -3 -i $ssh_private_key_path -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q root@$controller:/etc/kubernetes/pki/etcd/ca.key root@$node_addr:/etc/kubernetes/pki/etcd/ca.key ;\
 echo "waiting..." ; \
 sleep 360 ; \
-sh -i $ssh_private_key_path -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$node_addr "kubeadm join $controller:6443 --token $kube_token --control-plane --discovery-token-ca-cert-hash sha256:$CA_CERT_HASH" && \
+ssh -i $ssh_private_key_path -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$node_addr "kubeadm join $controller:6443 --token $kube_token --control-plane --discovery-token-ca-cert-hash sha256:$CA_CERT_HASH" && \
 echo "Control plane node configured: $node_addr"
