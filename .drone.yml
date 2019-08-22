@@ -34,6 +34,6 @@ steps:
   - export TF_VAR_control_plane_node_count="0"
   - terraform apply -auto-approve
   - terraform destroy -auto-approve
-  - export TF_VAR_control_plane_node_count="1"
-  - terraform apply -auto-approve
-  - terraform destroy -auto-approve
+  # - export TF_VAR_control_plane_node_count="1"
+  # - terraform apply -auto-approve
+  # - terraform destroy -auto-approve
