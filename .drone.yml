@@ -16,8 +16,16 @@ steps:
       from_secret: TF_VAR_project_id
     TF_VAR_cluster_name:
       from_secret: TF_VAR_cluster_name
+    PUB_KEY:
+      from_secret: public_key_ci_user
+    PRIV_KEY:
+      from_secret: private_key_ci_user
   commands:
+  - echo $PUB_KEY | tee -a packet.pub
+  - echo $PRIV_KEY | tee -a packet
+  - export TF_VAR_ssh_private_key_path=packet
   - apk --update add curl
+  - apk --update add openssh
   - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/0.12.2/terraform_0.12.2_linux_amd64.zip"
   - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
   - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
