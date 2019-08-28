@@ -134,6 +134,34 @@ function ceph_rook_basic {
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f cluster*
 }
 
+function ceph_storage_class {
+  cat << EOF > /root/kube/ceph-sc.yaml
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 3
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+   name: rook-ceph-block
+provisioner: ceph.rook.io/block
+parameters:
+  blockPool: replicapool
+  # The value of "clusterNamespace" MUST be the same as the one in which your rook cluster exist
+  clusterNamespace: rook-ceph
+  # Specify the filesystem type of the volume. If not specified, it will use `ext4`.
+  fstype: xfs
+# Optional, default reclaimPolicy is "Delete". Other options are: "Retain", "Recycle" as documented in https://kubernetes.io/docs/concepts/storage/storage-classes/
+reclaimPolicy: Retain
+EOF
+}
+
 function gen_encryption_config {
   echo "Generating EncryptionConfig for cluster..." && \
   export BASE64_STRING=$(head -c 32 /dev/urandom | base64) && \
@@ -169,7 +197,7 @@ function apply_workloads {
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml 
 }
 
 install_docker && \
@@ -203,7 +231,9 @@ else
 fi
 if [ "${ceph}" = "yes" ]; then
   echo "Configuring Ceph Operator" ; \
-  ceph_rook_basic
+  ceph_rook_basic && \
+  ceph_storage_class ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/kube/ceph-sc.yaml
 else
   echo "Skipping Ceph Operator setup..."
 fi
