@@ -113,6 +113,11 @@ stringData:
 EOF
 }
 
+function ceph_pre_check {
+  apt install -y lvm2 ; \
+  modprobe rbd
+}
+
 function ceph_rook_basic {
   cd /root/kube ; \
   mkdir ceph ; \
@@ -230,6 +235,7 @@ else
   gpu_enable
 fi
 if [ "${ceph}" = "yes" ]; then
+  ceph_pre_check && \
   echo "Configuring Ceph Operator" ; \
   ceph_rook_basic && \
   ceph_storage_class ; \

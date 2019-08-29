@@ -15,6 +15,11 @@ function enable_docker() {
  systemctl restart docker
 }
 
+function ceph_pre_check {
+  apt install -y lvm2 ; \
+  modprobe rbd
+}
+
 function install_kube_tools() {
  swapoff -a  && \
  apt-get update && apt-get install -y apt-transport-https
@@ -32,6 +37,9 @@ function join_cluster() {
 
 install_docker && \
 enable_docker && \
+if [ "${ceph}" = "yes" ]; then
+  ceph_pre_check
+fi ; \
 install_kube_tools && \
 sleep 180 && \
 join_cluster

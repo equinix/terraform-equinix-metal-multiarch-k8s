@@ -7,6 +7,7 @@ variable "facility" {}
 variable "cluster_name" {}
 variable "controller_address" {}
 variable "project_id" {}
+variable "ceph" {}
 
 data "template_file" "gpu_node" {
   template = "${file("${path.module}/gpu_node.tpl")}"
@@ -15,6 +16,7 @@ data "template_file" "gpu_node" {
     kube_token      = "${var.kube_token}"
     primary_node_ip = "${var.controller_address}"
     kube_version    = "${var.kubernetes_version}"
+    ceph            = "${var.ceph}"
   }
 }
 
