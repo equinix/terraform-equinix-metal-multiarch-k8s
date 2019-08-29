@@ -57,6 +57,7 @@ data "template_file" "controller-standby" {
     kube_token      = "${var.kube_token}"
     primary_node_ip = "${packet_device.k8s_primary.network.0.address}"
     kube_version    = "${var.kubernetes_version}"
+    ceph            = "${var.ceph}"
   }
 }
 

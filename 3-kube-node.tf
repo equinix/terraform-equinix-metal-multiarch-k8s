@@ -12,6 +12,7 @@ module "node_pool_blue" {
   cluster_name       = "${var.cluster_name}"
   controller_address = "${module.controllers.controller_addresses}"
   project_id         = "${var.project_id}"
+  ceph               = "${var.ceph}"
 }
 
 module "node_pool_gpu_green" {
@@ -26,4 +27,5 @@ module "node_pool_gpu_green" {
   cluster_name       = "${var.cluster_name}"
   controller_address = "${module.controllers.controller_addresses}"
   project_id         = "${var.project_id}"
+  ceph               = "${var.ceph}"
 }
