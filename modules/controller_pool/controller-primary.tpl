@@ -160,7 +160,6 @@ parameters:
   blockPool: replicapool
   # The value of "clusterNamespace" MUST be the same as the one in which your rook cluster exist
   clusterNamespace: rook-ceph
-  # Specify the filesystem type of the volume. If not specified, it will use `ext4`.
   fstype: xfs
 # Optional, default reclaimPolicy is "Delete". Other options are: "Retain", "Recycle" as documented in https://kubernetes.io/docs/concepts/storage/storage-classes/
 reclaimPolicy: Retain
@@ -201,7 +200,7 @@ function apply_workloads {
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml && \
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml 
 }
 
@@ -259,4 +258,3 @@ if [ "${secrets_encryption}" = "yes" ]; then
 else
   echo "Secrets Encryption not selected...finishing..."
 fi
-
