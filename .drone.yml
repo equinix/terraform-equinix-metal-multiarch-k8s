@@ -3,9 +3,36 @@ name: default
 
 steps:
   
-- name: Deploy
+- name: Deploy Single
   image: alpine
   environment:
+    TF_VAR_auth_token:
+      from_secret: TF_VAR_auth_token
+    TF_VAR_count_x86:
+      from_secret: TF_VAR_count_x86
+    TF_VAR_count_arm:
+      from_secret: TF_VAR_count_arm
+    TF_VAR_project_id:
+      from_secret: TF_VAR_project_id
+    TF_VAR_cluster_name:
+      from_secret: TF_VAR_cluster_name
+  commands:
+  - apk --update add curl openssh openssh-client
+  - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/0.12.2/terraform_0.12.2_linux_amd64.zip"
+  - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
+  - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
+  - terraform -v
+  - terraform init 
+  - terraform validate
+  - export TF_VAR_control_plane_node_count="0"
+  - terraform apply -auto-approve
+  - terraform destroy -auto-approve
+
+- name: Deploy HA
+  image: alpine
+  environment:
+    PACKET_TOKEN:
+      from_secret: TF_VAR_auth_token
     TF_VAR_auth_token:
       from_secret: TF_VAR_auth_token
     TF_VAR_count_x86:
@@ -21,19 +48,21 @@ steps:
     PRIV_KEY:
       from_secret: private_key_ci_user
   commands:
-  - echo $PUB_KEY | tee -a packet.pub
-  - echo $PRIV_KEY | tee -a packet
-  - export TF_VAR_ssh_private_key_path=packet
-  - apk --update add curl openssh openssh-client
+  - apk --update add curl openssh-client
+  - wget https://github.com/packethost/packet-cli/releases/download/0.0.3/packet-linux-amd64
+  - chmod +x packet-linux-amd64
+  - mv packet-linux-amd64 packet
+  - export KEY_NAME=packet-$(date +%F-%H%M) 
+  - ssh-keygen -t rsa -b 4096 -C "joseph+drone@packet.com" -f drone-key-$KEY_NAME -P "" 
+  - export KEY_UUID=`./packet ssh-key create -l $KEY_NAME -k "$(cat drone-key-$KEY_NAME.pub)" | awk '{print $2}'`
+  - export TF_VAR_ssh_private_key_path=drone-key-$KEY_NAME
   - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/0.12.2/terraform_0.12.2_linux_amd64.zip"
   - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
   - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
   - terraform -v
   - terraform init 
   - terraform validate
-  - export TF_VAR_control_plane_node_count="0"
-  - terraform apply -auto-approve
+  - export TF_VAR_control_plane_node_count="1"
+  - if terraform apply -auto-approve; then echo "Terraform Applied"; else echo "Failed." ; terraform destroy -auto-approve; fi
   - terraform destroy -auto-approve
-  # - export TF_VAR_control_plane_node_count="1"
-  # - terraform apply -auto-approve
-  # - terraform destroy -auto-approve
+  - packet ssh-key delete -i $KEY_UUID
