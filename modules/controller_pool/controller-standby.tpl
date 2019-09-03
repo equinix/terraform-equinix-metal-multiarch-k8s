@@ -35,4 +35,6 @@ if [ "${ceph}" = "yes" ]; then
 fi ; \
 enable_docker && \
 install_kube_tools && \
-sleep 180
+sleep 180 ; \
+backoff_count=`echo $((5 + RANDOM % 100))` ; \
+sleep $backoff_count
