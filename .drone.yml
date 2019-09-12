@@ -43,19 +43,11 @@ steps:
       from_secret: TF_VAR_project_id
     TF_VAR_cluster_name:
       from_secret: TF_VAR_cluster_name
-    PUB_KEY:
-      from_secret: public_key_ci_user
-    PRIV_KEY:
-      from_secret: private_key_ci_user
   commands:
-  - apk --update add curl openssh-client
-  - wget https://github.com/packethost/packet-cli/releases/download/0.0.3/packet-linux-amd64
-  - chmod +x packet-linux-amd64
-  - mv packet-linux-amd64 packet
-  - export KEY_NAME=packet-$(date +%F-%H%M) 
-  - ssh-keygen -t rsa -b 4096 -C "joseph+drone@packet.com" -f drone-key-$KEY_NAME -P "" 
-  - export KEY_UUID=`./packet ssh-key create -l $KEY_NAME -k "$(cat drone-key-$KEY_NAME.pub)" | awk '{print $2}'`
-  - export TF_VAR_ssh_private_key_path=drone-key-$KEY_NAME
+  - apk --update add curl openssh-client jq
+  - ssh-keygen -t rsa -b 4096 -C "jmarhee+drone@packet.com" -f drone-key-$DRONE_COMMIT -P ""
+  - PACKET_TOKEN=$PACKET_TOKEN KEY_NAME="$DRONE_COMMIT" PUB_KEY="$(cat drone-key-$DRONE_COMMIT.pub)" sh scripts/test_functions-add.sh
+  - export TF_VAR_ssh_private_key_path=drone-key-$DRONE_COMMIT
   - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/0.12.2/terraform_0.12.2_linux_amd64.zip"
   - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
   - mkdir -p ${HOME}/bin ; export PATH=${PATH}:${HOME}/bin; mv terraform ${HOME}/bin/
@@ -65,4 +57,13 @@ steps:
   - export TF_VAR_control_plane_node_count="1"
   - if terraform apply -auto-approve; then echo "Terraform Applied"; else echo "Failed." ; terraform destroy -auto-approve; fi
   - terraform destroy -auto-approve
-  - packet ssh-key delete -i $KEY_UUID
+
+- name: Clean Up
+  image: python
+  environment:
+    PACKET_TOKEN:
+      from_secret: TF_VAR_auth_token
+  commands:
+  - pip install requests
+  - export KEY_TAG=$DRONE_COMMIT
+  - PACKET_TOKEN=$PACKET_TOKEN KEY_TAG=$KEY_TAG python scripts/test_functions-delete.py
