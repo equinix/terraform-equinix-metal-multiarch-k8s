@@ -18,7 +18,7 @@ variable "plan_arm" {
 
 variable "plan_x86" {
   description = "Plan for K8s x86 Nodes"
-  default     = "baremetal_0"
+  default     = "c1.small.x86"
 }
 
 variable "plan_gpu" {
@@ -28,7 +28,7 @@ variable "plan_gpu" {
 
 variable "plan_primary" {
   description = "K8s Primary Plan (Defaults to x86 - baremetal_0)"
-  default     = "baremetal_0"
+  default     = "c1.small.x86"
 }
 
 variable "cluster_name" {
