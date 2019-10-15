@@ -5,7 +5,7 @@ variable "cluster_name" {}
 variable "project_id" {}
 variable "auth_token" {}
 variable "secrets_encryption" {}
-variable "ceph" {}
+variable "storage" {}
 variable "configure_network" {}
 variable "configure_ingress" {}
 variable "skip_workloads" {}
@@ -30,7 +30,7 @@ data "template_file" "controller-primary" {
     configure_ingress        = "${var.configure_ingress}"
     count                    = "${var.count_x86}"
     count_gpu                = "${var.count_gpu}"
-    ceph                     = "${var.ceph}"
+    storage                  = "${var.storage}"
     configure_network        = "${var.configure_network}"
     skip_workloads           = "${var.skip_workloads}"
     network                  = "${var.network}"
@@ -57,7 +57,7 @@ data "template_file" "controller-standby" {
     kube_token      = "${var.kube_token}"
     primary_node_ip = "${packet_device.k8s_primary.network.0.address}"
     kube_version    = "${var.kubernetes_version}"
-    ceph            = "${var.ceph}"
+    storage         = "${var.storage}"
   }
 }
 

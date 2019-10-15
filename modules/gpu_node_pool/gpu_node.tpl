@@ -52,7 +52,7 @@ function join_cluster() {
 install_docker && \
 nvidia_configure && \
 enable_docker && \
-if [ "${ceph}" = "yes" ]; then
+if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
 install_kube_tools && \
