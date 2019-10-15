@@ -13,7 +13,7 @@ module "controllers" {
   auth_token               = "${var.auth_token}"
   secrets_encryption       = "${var.secrets_encryption}"
   configure_ingress        = "${var.configure_ingress}"
-  storage                     = "${var.storage}"
+  storage                  = "${var.storage}"
   configure_network        = "${var.configure_network}"
   skip_workloads           = "${var.skip_workloads}"
   network                  = "${var.network}"

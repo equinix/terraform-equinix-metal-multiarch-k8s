@@ -16,7 +16,7 @@ data "template_file" "gpu_node" {
     kube_token      = "${var.kube_token}"
     primary_node_ip = "${var.controller_address}"
     kube_version    = "${var.kubernetes_version}"
-    storage            = "${var.storage}"
+    storage         = "${var.storage}"
   }
 }
 
