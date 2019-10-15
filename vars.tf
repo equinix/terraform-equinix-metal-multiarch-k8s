@@ -66,9 +66,9 @@ variable "configure_ingress" {
   default     = "no"
 }
 
-variable "ceph" {
-  description = "Configure Ceph Operator"
-  default     = "no"
+variable "storage" {
+  description = "Configure Storage ('ceph' or 'openebs') Operator"
+  default     = "none"
 }
 
 variable "skip_workloads" {

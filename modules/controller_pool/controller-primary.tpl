@@ -233,14 +233,16 @@ if [ "${count_gpu}" = "0" ]; then
 else
   gpu_enable
 fi
-if [ "${ceph}" = "yes" ]; then
+if [ "${storage}" = "openebs" ]; then
+   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://openebs.github.io/charts/openebs-operator-1.2.0.yaml
+elif [ "${storage}" = "ceph" ]; then
   ceph_pre_check && \
   echo "Configuring Ceph Operator" ; \
   ceph_rook_basic && \
   ceph_storage_class ; \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/kube/ceph-sc.yaml
 else
-  echo "Skipping Ceph Operator setup..."
+  echo "Skipping storage provider setup..."
 fi
 if [ "${configure_ingress}" = "yes" ]; then
   echo "Configuring Traefik..." ; \

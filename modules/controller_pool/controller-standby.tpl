@@ -30,7 +30,7 @@ function install_kube_tools() {
 }
 
 install_docker && \
-if [ "${ceph}" = "yes" ]; then
+if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
 enable_docker && \
