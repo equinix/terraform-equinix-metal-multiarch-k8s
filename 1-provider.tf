@@ -4,12 +4,12 @@ terraform {
 
 provider "packet" {
   version    = ">= 2.2.1"
-  auth_token = "${var.auth_token}"
+  auth_token = var.auth_token
 }
 
 resource "packet_reserved_ip_block" "kubernetes" {
-  project_id = "${var.project_id}"
-  facility   = "${var.facility}"
+  project_id = var.project_id
+  facility   = var.facility
   quantity   = 2
 }
 

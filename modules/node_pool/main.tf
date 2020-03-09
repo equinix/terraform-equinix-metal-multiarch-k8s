@@ -12,7 +12,7 @@ variable "project_id" {}
 variable "storage" {}
 
 data "template_file" "node" {
-  template = "${file("${path.module}/node.tpl")}"
+  template = file("${path.module}/node.tpl")
 
   vars = {
     kube_token      = "${var.kube_token}"
@@ -23,27 +23,27 @@ data "template_file" "node" {
 }
 
 resource "packet_device" "x86_node" {
-  hostname         = "${format("${var.cluster_name}-x86-${var.pool_label}-%02d", count.index)}"
+  hostname         = format("${var.cluster_name}-x86-${var.pool_label}-%02d", count.index)
   operating_system = "ubuntu_18_04"
-  count            = "${var.count_x86}"
-  plan             = "${var.plan_x86}"
+  count            = var.count_x86
+  plan             = var.plan_x86
   facilities       = ["${var.facility}"]
-  user_data        = "${data.template_file.node.rendered}"
+  user_data        = data.template_file.node.rendered
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-x86"]
 
   billing_cycle = "hourly"
-  project_id    = "${var.project_id}"
+  project_id    = var.project_id
 }
 
 resource "packet_device" "arm_node" {
-  hostname         = "${format("${var.cluster_name}-arm-${var.pool_label}-%02d", count.index)}"
+  hostname         = format("${var.cluster_name}-arm-${var.pool_label}-%02d", count.index)
   operating_system = "ubuntu_18_04"
-  count            = "${var.count_arm}"
-  plan             = "${var.plan_arm}"
+  count            = var.count_arm
+  plan             = var.plan_arm
   facilities       = ["${var.facility}"]
-  user_data        = "${data.template_file.node.rendered}"
+  user_data        = data.template_file.node.rendered
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-arm"]
 
   billing_cycle = "hourly"
-  project_id    = "${var.project_id}"
+  project_id    = var.project_id
 }
