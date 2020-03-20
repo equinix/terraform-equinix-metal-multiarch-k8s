@@ -29,24 +29,24 @@ Instantiating a new controller pool just requires a new instance of the `control
 module "controller_pool_primary" {
   source = "./modules/controller_pool"
 
-  kube_token               = "${module.kube_token_1.token}"
-  kubernetes_version       = "${var.kubernetes_version}"
-  count_x86                = "${var.count_x86}"
-  count_gpu                = "${var.count_gpu}"
-  plan_primary             = "${var.plan_primary}"
-  facility                 = "${var.facility}"
-  cluster_name             = "${var.cluster_name}"
-  kubernetes_lb_block      = "${packet_reserved_ip_block.kubernetes.cidr_notation}"
-  project_id               = "${var.project_id}"
-  auth_token               = "${var.auth_token}"
-  secrets_encryption       = "${var.secrets_encryption}"
-  configure_ingress        = "${var.configure_ingress}"
-  ceph                     = "${var.ceph}"
-  configure_network        = "${var.configure_network}"
-  skip_workloads           = "${var.skip_workloads}"
-  network                  = "${var.network}"
-  control_plane_node_count = "${var.control_plane_node_count}"
-  ssh_private_key_path     = "${var.ssh_private_key_path}"
+  kube_token               = module.kube_token_1.token
+  kubernetes_version       = var.kubernetes_version
+  count_x86                = var.count_x86
+  count_gpu                = var.count_gpu
+  plan_primary             = var.plan_primary
+  facility                 = var.facility
+  cluster_name             = var.cluster_name
+  kubernetes_lb_block      = packet_reserved_ip_block.kubernetes.cidr_notation
+  project_id               = var.project_id
+  auth_token               = var.auth_token
+  secrets_encryption       = var.secrets_encryption
+  configure_ingress        = var.configure_ingress
+  ceph                     = var.ceph
+  configure_network        = var.configure_network
+  skip_workloads           = var.skip_workloads
+  network                  = var.network
+  control_plane_node_count = var.control_plane_node_count
+  ssh_private_key_path     = var.ssh_private_key_path
 }
 ```
 
@@ -59,17 +59,17 @@ To instantiate a new node pool **after initial spinup**, in `3-kube-node.tf1`, d
 module "node_pool_green" {
   source = "modules/node_pool"
 
-  kube_token         = "${module.kube_token_2.token}"
-  kubernetes_version = "${var.kubernetes_version}"
+  kube_token         = module.kube_token_2.token
+  kubernetes_version = var.kubernetes_version
   pool_label         = "green"
-  count_x86          = "${var.count_x86}"
-  count_arm          = "${var.count_arm}"
-  plan_x86           = "${var.plan_x86}"
-  plan_arm           = "${var.plan_arm}"
-  facility           = "${var.facility}"
-  cluster_name       = "${var.cluster_name}"
-  controller_address = "${packet_device.k8s_primary.network.0.address}"
-  project_id         = "${packet_project.kubernetes_multiarch.id}"
+  count_x86          = var.count_x86
+  count_arm          = var.count_arm
+  plan_x86           = var.plan_x86
+  plan_arm           = var.plan_arm
+  facility           = var.facility
+  cluster_name       = var.cluster_name
+  controller_address = packet_device.k8s_primary.network.0.address
+  project_id         = packet_project.kubernetes_multiarch.id
 }
 ```
 where the label is `green` (rather than the initial pool, `blue`) and then, generate a new `kube_token` (ensure the module name matches the `kube_token` field in the spec above, i.e. `kube_token_2`) by defining this in `1-provider.tf` (or anywhere before the node_pool instantiation):
@@ -98,15 +98,15 @@ The `gpu_node_pool` module provisions and configures GPU nodes for use with your
 module "node_pool_gpu_green" {
   source = "./modules/gpu_node_pool"
 
-  kube_token         = "${module.kube_token_1.token}"
-  kubernetes_version = "${var.kubernetes_version}"
+  kube_token         = module.kube_token_1.token
+  kubernetes_version = var.kubernetes_version
   pool_label         = "gpu_green"
-  count_gpu          = "${var.count_gpu}"
-  plan_gpu           = "${var.plan_gpu}"
-  facility           = "${var.facility}"
-  cluster_name       = "${var.cluster_name}"
-  controller_address = "${packet_device.k8s_primary.network.0.address}"
-  project_id         = "${var.project_id}"
+  count_gpu          = var.count_gpu
+  plan_gpu           = var.plan_gpu
+  facility           = var.facility
+  cluster_name       = var.cluster_name
+  controller_address = packet_device.k8s_primary.network.0.address
+  project_id         = var.project_id
 }
 ```
 
