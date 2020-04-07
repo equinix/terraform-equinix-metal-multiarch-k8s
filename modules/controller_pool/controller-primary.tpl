@@ -200,7 +200,9 @@ function apply_workloads {
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml && \
+	kubectl --kubeconfig=/etc/kubernetes/adminf.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml && \
+	kubectl --kubeconfig=/etc/kubernetes/adminf.confapply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml && \
+	kubectl --kubeconfig=/etc/kubernetes/adminf.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml 
 }
 
@@ -216,7 +218,6 @@ else
   init_cluster_config
 fi
 packet_csi_config && \
-metal_lb && \
 sleep 180 && \
 if [ "${configure_network}" = "no" ]; then
   echo "Not configuring network"
@@ -226,7 +227,8 @@ fi
 if [ "${skip_workloads}" = "yes" ]; then
   echo "Skipping workloads..."
 else
-  apply_workloads
+  apply_workloads && \
+  metal_lb
 fi
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
