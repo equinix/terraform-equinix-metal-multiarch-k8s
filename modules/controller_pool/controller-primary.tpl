@@ -64,7 +64,7 @@ function init_cluster {
 
 function configure_network {
   if [ "${network}" = "calico" ]; then
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
   else
       kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
   fi
