@@ -17,11 +17,21 @@ The only required variables are `auth_token` (your [Packet API](https://www.pack
 
 Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Packet location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
 
+Generating Cluster Token
+-
+
+Tokens for cluster authentication for your node pools to your control plane must be created before instantiating the other modules:
+
+```
+module "kube_token_1" {
+  source = "./modules/kube-token"
+}
+```
+
 High Availability for Control Plane Nodes
 -
 
 This is not enabled by default, however, setting `control_plane_node_count` to any non-`0` value will provision a stacked control plane node and join the cluster as a master. This requires `ssh_private_key_path` be set in order to complete setup; this is used only locally to distribute certificates.
-
 
 Instantiating a new controller pool just requires a new instance of the `controller_pool` module:
 
