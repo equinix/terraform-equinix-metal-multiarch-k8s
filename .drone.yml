@@ -45,9 +45,6 @@ steps:
       from_secret: TF_VAR_project_id
   commands:
   - apk --update add curl openssh-client jq
-  - ssh-keygen -t rsa -b 4096 -C "jmarhee+drone@packet.com" -f drone-key-$DRONE_COMMIT -P ""
-  - PACKET_TOKEN=$PACKET_TOKEN KEY_NAME="$DRONE_COMMIT" PUB_KEY="$(cat drone-key-$DRONE_COMMIT.pub)" sh scripts/test_functions-add.sh
-  - export TF_VAR_ssh_private_key_path=drone-key-$DRONE_COMMIT
   - export TF_VAR_cluster_name=$DRONE_COMMIT
   - curl --silent --output terraform.zip "https://releases.hashicorp.com/terraform/0.13.0/terraform_0.13.0_linux_amd64.zip"
   - unzip terraform.zip ; rm -f terraform.zip; chmod +x terraform
@@ -61,13 +58,3 @@ steps:
   - export TF_VAR_control_plane_node_count="1"
   - if terraform apply -auto-approve; then echo "Terraform Applied"; else echo "Failed." ; terraform destroy -auto-approve; fi
   - terraform destroy -auto-approve
-
-- name: Clean Up
-  image: python
-  environment:
-    PACKET_TOKEN:
-      from_secret: TF_VAR_auth_token
-  commands:
-  - pip install requests
-  - export KEY_TAG=$DRONE_COMMIT
-  - PACKET_TOKEN=$PACKET_TOKEN KEY_TAG=$KEY_TAG python scripts/test_functions-delete.py
