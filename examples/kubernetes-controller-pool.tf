@@ -11,11 +11,6 @@ resource "tls_private_key" "ssh_key_pair" {
   rsa_bits  = 4096
 }
 
-resource "metal_ssh_key" "ssh_pub_key" {
-  name       = random_id.cloud.b64_url
-  public_key = chomp(tls_private_key.ssh_key_pair.public_key_openssh)
-}
-
 resource "local_file" "cluster_private_key_pem" {
   content         = chomp(tls_private_key.ssh_key_pair.private_key_pem)
   filename        = pathexpand(format("%s", local.ssh_key_name))
@@ -30,7 +25,7 @@ resource "local_file" "cluster_public_key" {
 
 resource "metal_ssh_key" "kubernetes-on-metal" {
   name       = format("terraform-k8s-%s", random_id.cloud.b64_url)
-  public_key = local_file.cluster_public_key.content
+  public_key = chomp(tls_private_key.ssh_key_pair.public_key_openssh)
 }
 
 resource "metal_reserved_ip_block" "kubernetes" {
