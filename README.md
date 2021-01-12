@@ -1,21 +1,29 @@
-Multi-Architecture Kubernetes on Packet
+Multi-Architecture Kubernetes on Equinix Metal
 ==
 
 [![Build Status](https://cloud.drone.io/api/badges/packet-labs/packet-multiarch-k8s-terraform/status.svg)](https://cloud.drone.io/packet-labs/packet-multiarch-k8s-terraform)
 
-This is a [Terraform](https://www.terraform.io/docs/providers/packet/index.html) project for deploying Kubernetes on [Packet](https://packet.com) with node pools of mixed architecture--x86 and ARM- devices, and pools of GPU devices, via the `node_pool` and `gpu_node_pool` modules for managing Kubernetes nodes.  
+This is a [Terraform](https://registry.terraform.io/providers/equinix/metal/latest/docs) module for deploying Kubernetes on [Equinix Metal](https://metal.equinix.com) with node pools of mixed architecture--x86 and ARM- devices, and pools of GPU devices, via the `node_pool` and `gpu_node_pool` modules for managing Kubernetes nodes.  
 
 This project configures your cluster with:
 
 - [MetalLB](https://metallb.universe.tf/) using Packet elastic IPs.
-- [Packet CSI](https://github.com/packethost/csi-packet) storage driver.
+- [Metal CSI](https://github.com/packethost/csi-packet) storage driver.
 
 Requirements
 -
 
-The only required variables are `auth_token` (your [Packet API](https://www.packet.com/developers/api/#) key), `count_x86` (the number of x86 devices), and `count_arm` (ARM devices). 
+The only required variables are `auth_token` (your [Equinix Metal API](https://metal.equinix.com/developers/api/) key), `count_x86` (the number of x86 devices), and `count_arm` (ARM devices). 
 
 Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Packet location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
+
+Getting Started
+- 
+
+In the `examples/` directory, there are plans for a cluster token, your Kubernetes control plane, and node pool examples. 
+
+These can be copied as-is, or you can implement these features per-module as seen in the following steps. 
+
 
 Generating Cluster Token
 -
@@ -46,7 +54,7 @@ module "controller_pool_primary" {
   plan_primary             = var.plan_primary
   facility                 = var.facility
   cluster_name             = var.cluster_name
-  kubernetes_lb_block      = packet_reserved_ip_block.kubernetes.cidr_notation
+  kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
   project_id               = var.project_id
   auth_token               = var.auth_token
   secrets_encryption       = var.secrets_encryption
@@ -78,8 +86,8 @@ module "node_pool_green" {
   plan_arm           = var.plan_arm
   facility           = var.facility
   cluster_name       = var.cluster_name
-  controller_address = packet_device.k8s_primary.network.0.address
-  project_id         = packet_project.kubernetes_multiarch.id
+  controller_address = metal_device.k8s_primary.network.0.address
+  project_id         = metal_project.kubernetes_multiarch.id
 }
 ```
 where the label is `green` (rather than the initial pool, `blue`) and then, generate a new `kube_token` (ensure the module name matches the `kube_token` field in the spec above, i.e. `kube_token_2`) by defining this in `1-provider.tf` (or anywhere before the node_pool instantiation):
@@ -115,7 +123,7 @@ module "node_pool_gpu_green" {
   plan_gpu           = var.plan_gpu
   facility           = var.facility
   cluster_name       = var.cluster_name
-  controller_address = packet_device.k8s_primary.network.0.address
+  controller_address = metal_device.k8s_primary.network.0.address
   project_id         = var.project_id
 }
 ```
