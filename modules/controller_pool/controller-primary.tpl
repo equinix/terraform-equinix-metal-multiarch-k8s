@@ -79,7 +79,7 @@ function gpu_config {
 }
 
 function metal_lb {
-    echo "Configuring MetalLB for ${packet_network_cidr}..." && \
+    echo "Configuring MetalLB for ${metal_network_cidr}..." && \
     cat << EOF > /root/kube/metal_lb.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -92,11 +92,11 @@ data:
     - name: packet-network
       protocol: layer2
       addresses:
-      - ${packet_network_cidr}
+      - ${metal_network_cidr}
 EOF
 }
 
-function packet_csi_config {
+function metal_csi_config {
   mkdir /root/kube ; \
   cat << EOF > /root/kube/packet-config.yaml
 apiVersion: v1
@@ -107,8 +107,8 @@ metadata:
 stringData:
   cloud-sa.json: |
     {
-    "apiKey": "${packet_auth_token}",
-    "projectID": "${packet_project_id}"
+    "apiKey": "${metal_auth_token}",
+    "projectID": "${metal_project_id}"
     }
 EOF
 }
@@ -217,7 +217,7 @@ else
   echo "Writing config for control plane nodes..." ; \
   init_cluster_config
 fi
-packet_csi_config && \
+metal_csi_config && \
 sleep 180 && \
 if [ "${configure_network}" = "no" ]; then
   echo "Not configuring network"

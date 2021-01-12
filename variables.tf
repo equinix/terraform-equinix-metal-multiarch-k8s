@@ -1,14 +1,14 @@
 variable "auth_token" {
-  description = "Your Packet API key"
+  description = "Your Equinix Metal API key"
 }
 
 variable "facility" {
-  description = "Packet Facility"
+  description = "Equinix Metal Facility"
   default     = "ewr1"
 }
 
 variable "project_id" {
-  description = "Packet Project ID"
+  description = "Equinix Metal Project ID"
 }
 
 variable "plan_arm" {
@@ -33,7 +33,7 @@ variable "plan_primary" {
 
 variable "cluster_name" {
   description = "Name of your cluster. Alpha-numeric and hyphens only, please."
-  default     = "packet-multiarch-k8s"
+  default     = "metal-multiarch-k8s"
 }
 
 variable "count_arm" {
@@ -53,7 +53,7 @@ variable "count_gpu" {
 
 variable "kubernetes_version" {
   description = "Version of Kubeadm to install"
-  default     = "1.17.0-00"
+  default     = "1.19.0-00"
 }
 
 variable "secrets_encryption" {
@@ -72,7 +72,7 @@ variable "storage" {
 }
 
 variable "skip_workloads" {
-  description = "Skip Packet workloads (CSI, MetalLB)"
+  description = "Skip Equinix Metal workloads (CSI, MetalLB)"
   default     = "no"
 }
 
@@ -89,9 +89,4 @@ variable "network" {
 variable "control_plane_node_count" {
   description = "Number of control plane nodes (in addition to the primary controller)"
   default     = "0"
-}
-
-variable "ssh_private_key_path" {
-  description = "Path to SSH private key-- this is only used for control plane node spin-up locally; is not used if control_plane_node_count set to 0."
-  default     = ""
 }
