@@ -1,16 +1,3 @@
-variable "kube_token" {}
-variable "kubernetes_version" {}
-variable "pool_label" {}
-variable "count_x86" {}
-variable "count_arm" {}
-variable "plan_x86" {}
-variable "plan_arm" {}
-variable "facility" {}
-variable "cluster_name" {}
-variable "controller_address" {}
-variable "project_id" {}
-variable "storage" {}
-
 data "template_file" "node" {
   template = file("${path.module}/node.tpl")
 

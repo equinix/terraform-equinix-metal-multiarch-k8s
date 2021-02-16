@@ -1,30 +1,11 @@
-variable "kube_token" {}
-variable "kubernetes_version" {}
-variable "facility" {}
-variable "cluster_name" {}
-variable "project_id" {}
-variable "auth_token" {}
-variable "secrets_encryption" {}
-variable "storage" {}
-variable "configure_network" {}
-variable "configure_ingress" {}
-variable "skip_workloads" {}
-variable "network" {}
-variable "plan_primary" {}
-variable "count_x86" {}
-variable "count_gpu" {}
-variable "kubernetes_lb_block" {}
-variable "control_plane_node_count" {}
-variable "ssh_private_key_path" {}
-
 data "template_file" "controller-primary" {
   template = file("${path.module}/controller-primary.tpl")
 
   vars = {
     kube_token               = var.kube_token
-    metal_network_cidr      = var.kubernetes_lb_block
-    metal_auth_token        = var.auth_token
-    metal_project_id        = var.project_id
+    metal_network_cidr       = var.kubernetes_lb_block
+    metal_auth_token         = var.auth_token
+    metal_project_id         = var.project_id
     kube_version             = var.kubernetes_version
     secrets_encryption       = var.secrets_encryption ? "yes" : "no"
     configure_ingress        = var.configure_ingress ? "yes" : "no"

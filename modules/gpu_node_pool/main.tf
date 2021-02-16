@@ -1,14 +1,3 @@
-variable "kube_token" {}
-variable "kubernetes_version" {}
-variable "pool_label" {}
-variable "count_gpu" {}
-variable "plan_gpu" {}
-variable "facility" {}
-variable "cluster_name" {}
-variable "controller_address" {}
-variable "project_id" {}
-variable "storage" {}
-
 data "template_file" "gpu_node" {
   template = file("${path.module}/gpu_node.tpl")
 
