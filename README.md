@@ -22,10 +22,39 @@ Other options include `secrets_encryption` (`"yes"` configures your controller w
 Getting Started
 - 
 
-In the `examples/` directory, there are plans for a cluster token, your Kubernetes control plane, and node pool examples. 
+This module can be used by cloning the GitHub repo and making any Terraform configuration changes fit your use-case, or the module can be used as-is.
 
-These can be copied as-is, or you can implement these features per-module as seen in the following steps. 
+An alternative to using `git clone`, with the same affect of copying all of the Terraform config files into an empty directory, is `terraform init -from-module=equinix/multiarch-k8s/metal"`.
 
+The following steps assume that you've chosen to use the module directly, taking advantage of the input and output variables published in the Terraform Registry.
+
+Create a file called `main.tf` with the following contents:
+
+```hcl
+# main.tf
+variable "auth_token" {}
+variable "project_id" {}
+
+module "multiarch-k8s" {
+  source  = "equinix/multiarch-k8s/metal"
+  version = "0.1.0" # Use the latest version, according to https://github.com/equinix/terraform-metal-multiarch-k8s/releases
+
+  # In a production
+  auth_token = var.auth_token
+  project_id = var.project_id
+}
+```
+
+Store the values of these two required variables in `terraform.tfvars`:
+
+```hcl
+# terraform.tfvars are used by default
+# Do not check this into to source control
+auth_token = "your Equinix Metal API Token"
+project_id = "your Equinix Metal Project ID"
+```
+
+Run `terraform init` and the providers and modules will be fetched and initialized.
 
 Generating Cluster Token
 -
