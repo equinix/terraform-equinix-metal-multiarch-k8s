@@ -2,10 +2,10 @@ auth_token = ""
 
 project_id = ""
 
-count_arm = "2"
+count_arm = 2
 
-count_x86 = "1"
+count_x86 = 1
 
-secrets_encryption = "no"
+secrets_encryption = false
 
 facility = "ewr1"

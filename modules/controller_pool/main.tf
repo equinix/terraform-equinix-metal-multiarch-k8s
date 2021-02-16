@@ -26,13 +26,13 @@ data "template_file" "controller-primary" {
     metal_auth_token        = var.auth_token
     metal_project_id        = var.project_id
     kube_version             = var.kubernetes_version
-    secrets_encryption       = var.secrets_encryption
-    configure_ingress        = var.configure_ingress
+    secrets_encryption       = var.secrets_encryption ? "yes" : "no"
+    configure_ingress        = var.configure_ingress ? "yes" : "no"
     count                    = var.count_x86
     count_gpu                = var.count_gpu
     storage                  = var.storage
-    configure_network        = var.configure_network
-    skip_workloads           = var.skip_workloads
+    configure_network        = var.configure_network ? "yes" : "no"
+    skip_workloads           = var.skip_workloads ? "yes" : "no"
     network                  = var.network
     control_plane_node_count = var.control_plane_node_count
   }
