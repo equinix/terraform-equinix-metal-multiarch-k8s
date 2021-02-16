@@ -1,0 +1,68 @@
+name: 'integration'
+# This workflow intends to verify that the module provisions
+# successfully for all software and infrastructure defined.
+# https://learn.hashicorp.com/tutorials/terraform/automate-terraform
+
+on:
+  push:
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
+
+jobs:
+  integrate:
+    name: Integration Tests
+    runs-on: ${{ matrix.os }}
+    env:
+      TF_IN_AUTOMATION: 1
+      TF_VERSION: ${{ matrix.tf }}
+      TF_VAR_control_plane_node_count: 0
+      TF_VAR_cluster_name: test-${{ github.sha }}
+      TF_VAR_auth_token: ${{ secrets.TF_VAR_auth_token }}
+      TF_VAR_count_x86: ${{ secrets.TF_VAR_count_x86 }}
+      TF_VAR_count_arm: ${{ secrets.TF_VAR_count_arm }}
+      TF_VAR_project_id: ${{ secrets.TF_VAR_project_id }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        tf: [0.13.2]
+    steps:
+    - name: Checkout from Github
+      uses: actions/checkout@v2
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+    - name: Initialize Terraform, Modules, and Plugins
+      id: init
+      run: terraform init -input=false
+    - name: Terraform Plan
+      id: plan
+      timeout-minutes: 45
+      run: terraform plan -out=tfplan -input=false
+    - name: Terraform Apply
+      id: apply
+      timeout-minutes: 45
+      run: terraform apply -input=false tfplan
+    - name: Terraform Destroy
+      id: destroy
+      if: ${{ always() }}
+      run: terraform destroy -input=false -auto-approve
+    - name: HA Terraform Plan
+      id: ha-plan
+      timeout-minutes: 45
+      env:
+        TF_VAR_control_plane_node_count: 1
+      run: terraform plan -out=tfplan -input=false
+    - name: HA Terraform Apply
+      id: ha-apply
+      timeout-minutes: 45
+      env:
+        TF_VAR_control_plane_node_count: 1
+      run: terraform apply -input=false tfplan
+    - name: HA Terraform Destroy
+      id: ha-destroy
+      if: ${{ always() }}
+      env:
+        TF_VAR_control_plane_node_count: 1
+      run: terraform destroy -input=false -auto-approve

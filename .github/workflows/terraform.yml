@@ -1,13 +1,17 @@
 name: 'terraform'
 # This workflow verifies that the Terraform configs are valid,
-# without running Google Anthos or building any Packet infrastructure.
+# without deploying any software or infrastructure.
 # https://learn.hashicorp.com/tutorials/terraform/automate-terraform
 
 on:
   push:
-    branches:
-    - master
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
   pull_request:
+    paths-ignore:
+      - 'LICENSE'
+      - '**.md'
 
 jobs:
   test:
