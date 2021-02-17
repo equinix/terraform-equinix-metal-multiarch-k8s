@@ -1,5 +1,4 @@
-Multi-Architecture Kubernetes on Equinix Metal
-==
+# Multi-Architecture Kubernetes on Equinix Metal
 
 [![Build Status](https://github.com/equinix/terraform-metal-multiarch-k8s/workflows/Integration%20Tests/badge.svg)](https://github.com/equinix/terraform-metal-multiarch-k8s/workflows/Integration%20Tests/)
 
@@ -12,15 +11,13 @@ This project configures your cluster with:
 - [MetalLB](https://metallb.universe.tf/) using Packet elastic IPs.
 - [Metal CSI](https://github.com/packethost/csi-packet) storage driver.
 
-Requirements
--
+## Requirements
 
-The only required variables are `auth_token` (your [Equinix Metal API](https://metal.equinix.com/developers/api/) key), `count_x86` (the number of x86 devices), and `count_arm` (ARM devices). 
+The only required variables are `auth_token` (your [Equinix Metal API](https://metal.equinix.com/developers/api/) key), `count_x86` (the number of x86 devices), and `count_arm` (ARM devices).
 
 Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Packet location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
 
-Getting Started
-- 
+## Getting Started
 
 This module can be used by cloning the GitHub repo and making any Terraform configuration changes fit your use-case, or the module can be used as-is.
 
@@ -56,27 +53,28 @@ project_id = "your Equinix Metal Project ID"
 
 Run `terraform init` and the providers and modules will be fetched and initialized.
 
-Generating Cluster Token
--
+## Generating Cluster Token
 
 Tokens for cluster authentication for your node pools to your control plane must be created before instantiating the other modules:
 
-```
+```hcl
 module "kube_token_1" {
-  source = "./modules/kube-token"
+  # source = "./modules/kube-token"
 }
 ```
 
-High Availability for Control Plane Nodes
--
+## High Availability for Control Plane Nodes
 
 This is not enabled by default, however, setting `control_plane_node_count` to any non-`0` value will provision a stacked control plane node and join the cluster as a master. This requires `ssh_private_key_path` be set in order to complete setup; this is used only locally to distribute certificates.
 
 Instantiating a new controller pool just requires a new instance of the `controller_pool` module:
 
-```
+```hcl
 module "controller_pool_primary" {
-  source = "./modules/controller_pool"
+  source = "equinix/multiarch-k8s/metal/modules/controller_pool"
+
+  # Or if the modules are copied locally:
+  # source = "./modules/controller_pool"
 
   kube_token               = module.kube_token_1.token
   kubernetes_version       = var.kubernetes_version
@@ -99,14 +97,16 @@ module "controller_pool_primary" {
 }
 ```
 
-Node Pool Management
--
+## Node Pool Management
 
-To instantiate a new node pool **after initial spinup**, in `3-kube-node.tf1`, define a pool using the node pool module like this:
+To instantiate a new node pool **after initial spinup**, add a second module defining the pool using the node pool module like this:
 
 ```hcl
 module "node_pool_green" {
-  source = "modules/node_pool"
+  source = "equinix/multiarch-k8s/metal/modules/node_pool"
+
+  # Or if the modules are copied locally:
+  # source = "./modules/node_pool"
 
   kube_token         = module.kube_token_2.token
   kubernetes_version = var.kubernetes_version
@@ -120,26 +120,29 @@ module "node_pool_green" {
   controller_address = metal_device.k8s_primary.network.0.address
   project_id         = metal_project.kubernetes_multiarch.id
 }
-```
-where the label is `green` (rather than the initial pool, `blue`) and then, generate a new `kube_token` (ensure the module name matches the `kube_token` field in the spec above, i.e. `kube_token_2`) by defining this in `1-provider.tf` (or anywhere before the node_pool instantiation):
 
-```hcl
 module "kube_token_2" {
   source = "modules/kube-token"
 }
 ```
+
+In this example, the label is `green` (rather than the initial pool, `blue`) and then, generate a new `kube_token` (ensure the module name matches the `kube_token` field in the spec above, i.e. `kube_token_2`) by defining this in `1-provider.tf` (or anywhere before the node_pool instantiation):
+
 Generate your new token:
-```
+
+```sh
 terraform apply -target=module.kube_token_2
 ```
+
 On your controller, [add your new token](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-token/#cmd-token-create), and then apply the new node pool:
-```
+
+```sh
 terraform apply -target=module.node_pool_green
 ```
+
 At which point, you can either destroy the old pool, or taint/evict pods, etc. once this new pool connects.
 
-GPU Node Pools
--
+## GPU Node Pools
 
 The `gpu_node_pool` module provisions and configures GPU nodes for use with your Kubernetes cluster. The module definition requires `count_gpu` (defaults to "0"), and `plan_gpu` (defaults to `g2.large`):
 
@@ -165,4 +168,4 @@ and upon applying your GPU pool:
 terraform apply -target=module.node_pool_gpu_green
 ```
 
-you can manage this pool discretely from your mixed-architecture pools created with the `node_pool` module above. 
+You can manage this pool discretely from your mixed-architecture pools created with the `node_pool` module above.
