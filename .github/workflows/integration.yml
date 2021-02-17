@@ -43,7 +43,8 @@ jobs:
     - name: Terraform Vars
       env:
         TF_VAR_project_id: ${{ steps.metal-project.outputs.projectID }}
-      run: echo "project_id=$TF_VAR_project_id" > terraform.tfvars
+      run: >
+        echo "project_id = \"$TF_VAR_project_id\"" > terraform.tfvars
     - name: Terraform Plan
       id: plan
       timeout-minutes: 45
