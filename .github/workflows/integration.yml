@@ -37,9 +37,9 @@ jobs:
       id: init
       run: terraform init -input=false
     - id: metal-project
-      uses: displague/metal-project-action@v0.4.0
+      uses: displague/metal-project-action@v0.5.0
       env:
-        PACKET_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
+        METAL_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
     - name: Terraform Plan
       id: plan
       timeout-minutes: 45
@@ -71,7 +71,7 @@ jobs:
       run: terraform destroy -input=false -auto-approve
     - name: Project Delete
       if: ${{ always() }}
-      uses: displague/metal-sweeper-action@v0.2.0
+      uses: displague/metal-sweeper-action@v0.3.0
       env:
-        PROJECT_ID: ${{ steps.metal-project.outputs.projectID }}
-        PACKET_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
+        METAL_PROJECT_ID: ${{ steps.metal-project.outputs.projectID }}
+        METAL_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
