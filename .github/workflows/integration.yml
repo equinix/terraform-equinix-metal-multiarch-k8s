@@ -19,6 +19,8 @@ jobs:
       TF_VAR_control_plane_node_count: 0
       TF_VAR_count_x86: 1
       TF_VAR_count_arm: 1
+      KUBERNETES_VERSION: 1.19.0
+      TF_VAR_kubernetes_version: 1.19.0-00
       # TODO only provide this to terraform steps that need it
       TF_VAR_auth_token: ${{ secrets.METAL_AUTH_TOKEN }}
     strategy:
@@ -30,7 +32,11 @@ jobs:
       uses: actions/checkout@v2
     - name: Add SHORT_SHA env property with commit short sha
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-    - name: Generate Cluster Name
+    - name: Install kubeadm
+      run: |
+        set -euo pipefail
+        sudo curl -fsSL -o /usr/bin/kubeadm https://storage.googleapis.com/kubernetes-release/release/v$KUBERNETES_VERSION/bin/linux/amd64/kubectl
+        sudo chmod +x /usr/bin/kubeadm
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v1
       with:
