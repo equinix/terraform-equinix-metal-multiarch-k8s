@@ -40,11 +40,13 @@ jobs:
       uses: displague/metal-project-action@v0.5.0
       env:
         METAL_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
+    - name: Terraform Vars
+      env:
+        TF_VAR_project_id: ${{ steps.metal-project.outputs.projectID }}
+      run: echo "project_id=$TF_VAR_project_id" > terraform.tfvars
     - name: Terraform Plan
       id: plan
       timeout-minutes: 45
-      env:
-        TF_VAR_project_id: ${{ steps.metal-project.outputs.projectID }}
       run: terraform plan -out=tfplan -input=false
     - name: Terraform Apply
       id: apply
@@ -58,7 +60,6 @@ jobs:
       id: ha-plan
       timeout-minutes: 45
       env:
-        TF_VAR_project_id: ${{ steps.metal-project.outputs.projectID }}
         TF_VAR_control_plane_node_count: 1
       run: terraform plan -out=tfplan -input=false
     - name: HA Terraform Apply
