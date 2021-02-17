@@ -49,7 +49,7 @@ jobs:
       env:
         METAL_AUTH_TOKEN: ${{ secrets.METAL_AUTH_TOKEN }}
     - name: Terraform Vars - Cluster Name
-      run:  echo "TF_VAR_cluster_name=tfacc-${SHORT_SHA} >> $GITHUB_ENV
+      run:  echo "TF_VAR_cluster_name=tfacc-${SHORT_SHA}" >> $GITHUB_ENV
     - name: Terraform Vars - Project ID
       run: echo "TF_VAR_project_id=${{ steps.project.outputs.projectID }}" >> $GITHUB_ENV
     - name: Terraform Plan
