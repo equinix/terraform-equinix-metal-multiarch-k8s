@@ -8,14 +8,14 @@ This module can be found on the Terraform Registry at <https://registry.terrafor
 
 This project configures your cluster with:
 
-- [MetalLB](https://metallb.universe.tf/) using Packet elastic IPs.
-- [Metal CSI](https://github.com/packethost/csi-packet) storage driver.
+- [MetalLB](https://metallb.universe.tf/) using Equinix Metal elastic IPs.
+- [Equinix Metal CSI](https://github.com/packethost/csi-packet) storage driver.
 
 ## Requirements
 
 The only required variables are `auth_token` (your [Equinix Metal API](https://metal.equinix.com/developers/api/) key), `count_x86` (the number of x86 devices), and `count_arm` (ARM devices).
 
-Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Packet location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
+Other options include `secrets_encryption` (`"yes"` configures your controller with encryption for secrets--this is disabled by default), and fields like `facility` (the Equinix Metal location to deploy to) and `plan_x86` or `plan_arm` (to determine the server type of these architectures) can be specified as well. Refer to `vars.tf` for a complete catalog of tunable options.
 
 ## Getting Started
 
