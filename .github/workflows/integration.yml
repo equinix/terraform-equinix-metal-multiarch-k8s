@@ -64,7 +64,6 @@ jobs:
     - name: HA Terraform Apply
       id: ha-apply
       timeout-minutes: 45
-      env:
       run: terraform apply -input=false tfplan
     - name: HA Terraform Destroy
       id: ha-destroy
