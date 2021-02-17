@@ -32,11 +32,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Add SHORT_SHA env property with commit short sha
       run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-    - name: Install kubeadm
-      run: |
-        set -euo pipefail
-        sudo curl -fsSL -o /usr/bin/kubeadm https://storage.googleapis.com/kubernetes-release/release/v$KUBERNETES_VERSION/bin/linux/amd64/kubectl
-        sudo chmod +x /usr/bin/kubeadm
+
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v1
       with:
