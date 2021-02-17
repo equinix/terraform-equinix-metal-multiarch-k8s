@@ -1,6 +1,6 @@
 variable "kube_token" {
   type        = string
-  description = "Your Kubernetes API token"
+  description = "A token that kubeadm will use during bootstraping, capable of adding new nodes to the cluster."
 }
 
 variable "kubernetes_version" {
