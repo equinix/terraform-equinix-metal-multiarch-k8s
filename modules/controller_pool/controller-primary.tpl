@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function install_docker() {
  echo "Installing Docker..." ; \
