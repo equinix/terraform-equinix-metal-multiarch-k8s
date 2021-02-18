@@ -43,7 +43,7 @@ data "template_file" "controller-standby" {
 }
 
 resource "metal_device" "k8s_controller_standby" {
-
+  count      = var.control_plane_node_count
   depends_on = [metal_device.k8s_primary]
 
   hostname         = format("${var.cluster_name}-controller-standby-%02d", count.index)
@@ -52,21 +52,33 @@ resource "metal_device" "k8s_controller_standby" {
   facilities       = [var.facility]
   user_data        = data.template_file.controller-standby.rendered
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
+  billing_cycle    = "hourly"
+  project_id       = var.project_id
+}
 
+resource "null_resource" "key_wait_transfer" {
   count = var.control_plane_node_count
+
+  connection {
+    type = "ssh"
+    user = "root"
+    host = metal_device.k8s_controller_standby[count.index].access_public_ipv4
+  }
+
+  provisioner "remote-exec" {
+    inline = ["cloud-init status --wait"]
+  }
 
   provisioner "local-exec" {
     environment = {
       controller           = metal_device.k8s_primary.network.0.address
-      node_addr            = self.access_public_ipv4
+      node_addr            = metal_device.k8s_controller_standby[count.index].access_public_ipv4
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
     }
-    command = "sh scripts/key_wait_transfer.sh"
-  }
 
-  billing_cycle = "hourly"
-  project_id    = var.project_id
+    command = "sh ${path.module}/assets/key_wait_transfer.sh"
+  }
 }
 
 resource "metal_ip_attachment" "kubernetes_lb_block" {
