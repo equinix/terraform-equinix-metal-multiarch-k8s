@@ -1,38 +1,19 @@
-variable "kube_token" {}
-variable "kubernetes_version" {}
-variable "facility" {}
-variable "cluster_name" {}
-variable "project_id" {}
-variable "auth_token" {}
-variable "secrets_encryption" {}
-variable "storage" {}
-variable "configure_network" {}
-variable "configure_ingress" {}
-variable "skip_workloads" {}
-variable "network" {}
-variable "plan_primary" {}
-variable "count_x86" {}
-variable "count_gpu" {}
-variable "kubernetes_lb_block" {}
-variable "control_plane_node_count" {}
-variable "ssh_private_key_path" {}
-
 data "template_file" "controller-primary" {
   template = file("${path.module}/controller-primary.tpl")
 
   vars = {
     kube_token               = var.kube_token
-    metal_network_cidr      = var.kubernetes_lb_block
-    metal_auth_token        = var.auth_token
-    metal_project_id        = var.project_id
+    metal_network_cidr       = var.kubernetes_lb_block
+    metal_auth_token         = var.auth_token
+    metal_project_id         = var.project_id
     kube_version             = var.kubernetes_version
-    secrets_encryption       = var.secrets_encryption
-    configure_ingress        = var.configure_ingress
+    secrets_encryption       = var.secrets_encryption ? "yes" : "no"
+    configure_ingress        = var.configure_ingress ? "yes" : "no"
     count                    = var.count_x86
     count_gpu                = var.count_gpu
     storage                  = var.storage
-    configure_network        = var.configure_network
-    skip_workloads           = var.skip_workloads
+    configure_network        = var.configure_network ? "yes" : "no"
+    skip_workloads           = var.skip_workloads ? "yes" : "no"
     network                  = var.network
     control_plane_node_count = var.control_plane_node_count
   }
@@ -62,7 +43,7 @@ data "template_file" "controller-standby" {
 }
 
 resource "metal_device" "k8s_controller_standby" {
-
+  count      = var.control_plane_node_count
   depends_on = [metal_device.k8s_primary]
 
   hostname         = format("${var.cluster_name}-controller-standby-%02d", count.index)
@@ -71,21 +52,35 @@ resource "metal_device" "k8s_controller_standby" {
   facilities       = [var.facility]
   user_data        = data.template_file.controller-standby.rendered
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
+  billing_cycle    = "hourly"
+  project_id       = var.project_id
+}
 
+resource "null_resource" "key_wait_transfer" {
   count = var.control_plane_node_count
+
+  connection {
+    type        = "ssh"
+    user        = "root"
+    host        = metal_device.k8s_controller_standby[count.index].access_public_ipv4
+    private_key = var.ssh_private_key_path
+    password    = metal_device.k8s_controller_standby[count.index].root_password
+  }
+
+  provisioner "remote-exec" {
+    inline = ["cloud-init status --wait"]
+  }
 
   provisioner "local-exec" {
     environment = {
       controller           = metal_device.k8s_primary.network.0.address
-      node_addr            = self.access_public_ipv4
+      node_addr            = metal_device.k8s_controller_standby[count.index].access_public_ipv4
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
     }
-    command = "sh scripts/key_wait_transfer.sh"
-  }
 
-  billing_cycle = "hourly"
-  project_id    = var.project_id
+    command = "sh ${path.module}/assets/key_wait_transfer.sh"
+  }
 }
 
 resource "metal_ip_attachment" "kubernetes_lb_block" {

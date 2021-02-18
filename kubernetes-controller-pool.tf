@@ -54,5 +54,5 @@ module "controllers" {
   skip_workloads           = var.skip_workloads
   network                  = var.network
   control_plane_node_count = var.control_plane_node_count
-  ssh_private_key_path     = local_file.cluster_private_key_pem
+  ssh_private_key_path     = local_file.cluster_private_key_pem.filename
 }

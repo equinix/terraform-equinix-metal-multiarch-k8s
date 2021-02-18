@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 function install_docker() {
  echo "Installing Docker..." ; \
@@ -43,7 +43,7 @@ bootstrapTokens:
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
 kubernetesVersion: stable
-controlPlaneEndpoint: "$(curl -s http://metadata.packet.net/metadata | jq -r '.network.addresses[] | select(.public == true) | select(.management == true) | select(.address_family == 4) | .address'):6443"
+controlPlaneEndpoint: "$(curl -s http://metadata.platformequinix.com/metadata | jq -r '.network.addresses[] | select(.public == true) | select(.management == true) | select(.address_family == 4) | .address'):6443"
 networking:
   podSubnet: $POD_NETWORK
 certificatesDir: /etc/kubernetes/pki
@@ -89,16 +89,18 @@ metadata:
 data:
   config: |
     address-pools:
-    - name: packet-network
+    - name: metal-network
       protocol: layer2
       addresses:
       - ${metal_network_cidr}
 EOF
 }
 
+# packet-cloud-config name is configured in the CSI deployment,
+# dont change it without updating the CSI deployment
 function metal_csi_config {
   mkdir /root/kube ; \
-  cat << EOF > /root/kube/packet-config.yaml
+  cat << EOF > /root/kube/metal-config.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -196,7 +198,7 @@ acert="/etc/kubernetes/pki/etcd/ca.crt" get /registry/secrets/default/personal-s
 function apply_workloads {
   echo "Applying workloads..." && \
 	cd /root/kube && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f packet-config.yaml && \
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal-config.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
         kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 

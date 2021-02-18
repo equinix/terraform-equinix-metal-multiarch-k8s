@@ -1,6 +1,6 @@
 output "controller_addresses" {
   description = "Kubernetes Controller IP Addresses"
-  value       = "${metal_device.k8s_primary.network.0.address}"
+  value       = metal_device.k8s_primary.network.0.address
 }
 
 # output "controller_standby_address" {

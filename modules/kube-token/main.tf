@@ -11,7 +11,3 @@ resource "random_string" "kube_init_token_b" {
   min_lower   = 6
   min_numeric = 6
 }
-
-output "token" {
-  value = "${random_string.kube_init_token_a.result}.${random_string.kube_init_token_b.result}"
-}
