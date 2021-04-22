@@ -6,7 +6,7 @@ variable "auth_token" {
 variable "facility" {
   type        = string
   description = "Equinix Metal Facility"
-  default     = "ewr1"
+  default     = "dc13"
 }
 
 variable "project_id" {
@@ -17,13 +17,13 @@ variable "project_id" {
 variable "plan_arm" {
   type        = string
   description = "Plan for K8s ARM Nodes"
-  default     = "baremetal_2a"
+  default     = "c1.large.arm"
 }
 
 variable "plan_x86" {
   type        = string
   description = "Plan for K8s x86 Nodes"
-  default     = "c1.small.x86"
+  default     = "c3.small.x86"
 }
 
 variable "plan_gpu" {
@@ -34,8 +34,8 @@ variable "plan_gpu" {
 
 variable "plan_primary" {
   type        = string
-  description = "K8s Primary Plan (Defaults to x86 - baremetal_0)"
-  default     = "c1.small.x86"
+  description = "K8s Primary Plan"
+  default     = "c3.small.x86"
 }
 
 variable "cluster_name" {
