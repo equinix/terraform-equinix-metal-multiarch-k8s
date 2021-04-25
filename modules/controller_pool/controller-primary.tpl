@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export HOME=/root
+
 function install_docker() {
  echo "Installing Docker..." ; \
  apt-get update; \
