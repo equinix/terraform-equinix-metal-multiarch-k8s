@@ -19,8 +19,9 @@ jobs:
       TF_VAR_control_plane_node_count: 0
       TF_VAR_count_x86: 1
       TF_VAR_count_arm: 1
-      KUBERNETES_VERSION: 1.19.0
-      TF_VAR_kubernetes_version: 1.19.0-00
+      TF_VAR_facility: "ewr1"
+      KUBERNETES_VERSION: 1.21.0
+      TF_VAR_kubernetes_version: 1.21.0-00
       # TODO only provide this to terraform steps that need it
       TF_VAR_auth_token: ${{ secrets.METAL_AUTH_TOKEN }}
     strategy:
