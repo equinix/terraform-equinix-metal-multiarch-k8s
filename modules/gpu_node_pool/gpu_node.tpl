@@ -11,6 +11,19 @@ function nvidia_configure() {
  sudo systemctl restart docker
 }
 
+function nvidia_drivers() {
+  sudo sed -i 's/^#root/root/' /etc/nvidia-container-runtime/config.toml && \
+  sudo tee /etc/modules-load.d/ipmi.conf <<< "ipmi_msghandler" \
+  && sudo tee /etc/modprobe.d/blacklist-nouveau.conf <<< "blacklist nouveau" \
+  && sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf <<< "options nouveau modeset=0" && \
+  sudo update-initramfs -u && \
+  sudo docker run --name nvidia-driver -d --privileged --pid=host \
+  -v /run/nvidia:/run/nvidia:shared \
+  -v /var/log:/var/log \
+  --restart=unless-stopped \
+  nvidia/driver:450.80.02-ubuntu18.04
+}
+
 function install_docker() {
  apt-get update; \
  apt-get install -y docker.io
@@ -43,6 +56,7 @@ function join_cluster() {
 
 install_docker && \
 nvidia_configure && \
+nvidia_drivers && \
 enable_docker && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
