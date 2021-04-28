@@ -20,7 +20,7 @@ module "node_pool_gpu_green" {
 
   kube_token         = module.kube_token_1.token
   kubernetes_version = var.kubernetes_version
-  pool_label         = "gpu_green"
+  pool_label         = "gpu-green"
   count_gpu          = var.count_gpu
   plan_gpu           = var.plan_gpu
   facility           = var.facility
