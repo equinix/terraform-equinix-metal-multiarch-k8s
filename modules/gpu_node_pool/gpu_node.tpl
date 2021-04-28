@@ -29,6 +29,20 @@ function install_docker() {
  apt-get install -y docker.io
 }
 
+function update_docker_daemon() {
+ cat << EOF > /etc/docker/daemon.json
+ {
+   "exec-opts": ["native.cgroupdriver=systemd"],
+    "runtimes": {
+        "nvidia": {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    }
+ }
+EOF
+}
+
 function enable_docker() {
  systemctl enable docker ; \
  systemctl restart docker
@@ -58,6 +72,8 @@ install_docker && \
 nvidia_configure && \
 nvidia_drivers && \
 enable_docker && \
+update_docker_daemon && \
+systemctl restart docker && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
