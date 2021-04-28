@@ -1,32 +1,24 @@
 #!/bin/bash
 
+export HOME=/root
+
 function nvidia_configure() {
+ sudo pkill -SIGHUP dockerd && \
  distribution=$(. /etc/os-release;echo $ID$VERSION_ID) ; \
  curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - ; \
  curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list ; \
- sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit ; \
+ sudo apt-get update && sudo apt-get install -y nvidia-docker2 nvidia-cuda-toolkit ; \
  sudo systemctl restart docker
 }
 
 function install_docker() {
  apt-get update; \
- apt-get install -y docker.io && \
- cat << EOF > /etc/docker/daemon.json
-{
-    "default-runtime": "nvidia",
-    "runtimes": {
-        "nvidia": {
-            "path": "/usr/bin/nvidia-container-runtime",
-            "runtimeArgs": []
-        }
-    }
-}
-EOF
+ apt-get install -y docker.io
 }
 
 function enable_docker() {
  systemctl enable docker ; \
- systemctl start docker
+ systemctl restart docker
 }
 
 function ceph_pre_check {
