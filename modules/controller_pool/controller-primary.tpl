@@ -76,7 +76,7 @@ function gpu_config {
   if [ "${count_gpu}" = "0" ]; then
 	echo "No GPU nodes to prepare for presently...moving on..."
   else
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta/nvidia-device-plugin.yml
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml
   fi
 }
 
