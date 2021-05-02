@@ -30,7 +30,8 @@ resource "metal_ssh_key" "kubernetes-on-metal" {
 
 resource "metal_reserved_ip_block" "kubernetes" {
   project_id = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
-  facility   = var.facility
+  facility   = var.facility != "" ? var.facility : null
+  metro      = var.metro != "" ? var.metro : null
   quantity   = 4
 }
 
@@ -43,6 +44,7 @@ module "controllers" {
   count_gpu                = var.count_gpu
   plan_primary             = var.plan_primary
   facility                 = var.facility
+  metro                    = var.metro
   cluster_name             = var.cluster_name
   kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
   project_id               = var.metal_create_project ? metal_project.new_project[0].id : var.project_id

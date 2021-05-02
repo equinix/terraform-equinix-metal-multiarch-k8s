@@ -10,6 +10,7 @@ module "controller_pool_primary" {
   count_gpu                = var.count_gpu
   plan_primary             = var.plan_primary
   facility                 = var.facility
+  metro                    = var.metro
   cluster_name             = var.cluster_name
   kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
   project_id               = var.project_id

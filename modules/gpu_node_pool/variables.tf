@@ -26,7 +26,12 @@ variable "plan_gpu" {
 
 variable "facility" {
   type        = string
-  description = "Equinix Metal Facility"
+  description = "Equinix Metal Facility (conflicts with metro)"
+}
+
+variable "metro" {
+  type        = string
+  description = "Equinix Metal Metro (conflicts with facility)"
 }
 
 variable "cluster_name" {

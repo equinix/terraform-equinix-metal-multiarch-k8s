@@ -7,6 +7,7 @@ module "node_pool_gpu_green" {
   count_gpu          = var.count_gpu
   plan_gpu           = var.plan_gpu
   facility           = var.facility
+  metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = metal_device.k8s_primary.network.0.address
   project_id         = var.project_id

@@ -1,11 +1,6 @@
-auth_token = ""
-
-project_id = ""
-
-count_arm = 2
-
-count_x86 = 1
-
+auth_token         = ""
+project_id         = ""
+count_arm          = 2
+count_x86          = 1
 secrets_encryption = false
-
-facility = "ewr1"
+metro              = "dc"

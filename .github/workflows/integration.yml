@@ -18,7 +18,7 @@ jobs:
       TF_VERSION: ${{ matrix.tf }}
       TF_VAR_control_plane_node_count: 0
       TF_VAR_count_x86: 1
-      TF_VAR_count_arm: 1
+      TF_VAR_count_arm: 0
       KUBERNETES_VERSION: 1.21.0
       TF_VAR_kubernetes_version: 1.21.0-00
       # TODO only provide this to terraform steps that need it
@@ -26,7 +26,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        tf: [0.13.2]
+        tf: [0.14.10]
     steps:
     - name: Checkout from Github
       uses: actions/checkout@v2
