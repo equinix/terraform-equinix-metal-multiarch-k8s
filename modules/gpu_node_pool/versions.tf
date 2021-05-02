@@ -2,7 +2,7 @@ terraform {
   required_providers {
     metal = {
       source  = "equinix/metal"
-      version = "2.1.0"
+      version = ">= 2.1, <4"
     }
     template = {
       source = "hashicorp/template"
