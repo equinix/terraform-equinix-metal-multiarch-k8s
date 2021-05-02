@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOME=/root
+
 function install_docker() {
  apt-get update; \
  apt-get install -y docker.io && \

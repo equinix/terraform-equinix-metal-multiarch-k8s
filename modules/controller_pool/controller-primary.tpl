@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export HOME=/root
+
 function install_docker() {
  echo "Installing Docker..." ; \
  apt-get update; \
@@ -64,7 +66,8 @@ function init_cluster {
 
 function configure_network {
   if [ "${network}" = "calico" ]; then
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
   else
       kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
   fi
@@ -74,7 +77,7 @@ function gpu_config {
   if [ "${count_gpu}" = "0" ]; then
 	echo "No GPU nodes to prepare for presently...moving on..."
   else
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta/nvidia-device-plugin.yml
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml
   fi
 }
 

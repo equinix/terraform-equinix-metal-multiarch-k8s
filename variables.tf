@@ -17,7 +17,7 @@ variable "project_id" {
 variable "plan_arm" {
   type        = string
   description = "Plan for K8s ARM Nodes"
-  default     = "c1.large.arm"
+  default     = "c2.large.arm"
 }
 
 variable "plan_x86" {
@@ -65,7 +65,7 @@ variable "count_gpu" {
 variable "kubernetes_version" {
   type        = string
   description = "Version of Kubeadm to install"
-  default     = "1.19.0-00"
+  default     = "1.21.0-00"
 }
 
 variable "secrets_encryption" {
