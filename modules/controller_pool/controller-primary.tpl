@@ -99,25 +99,6 @@ data:
 EOF
 }
 
-# packet-cloud-config name is configured in the CSI deployment,
-# dont change it without updating the CSI deployment
-function metal_csi_config {
-  mkdir /root/kube ; \
-  cat << EOF > /root/kube/metal-config.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: packet-cloud-config
-  namespace: kube-system
-stringData:
-  cloud-sa.json: |
-    {
-    "apiKey": "${metal_auth_token}",
-    "projectID": "${metal_project_id}"
-    }
-EOF
-}
-
 function ceph_pre_check {
   apt install -y lvm2 ; \
   modprobe rbd
@@ -202,13 +183,10 @@ function apply_workloads {
   echo "Applying workloads..." && \
 	cd /root/kube && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal-config.yaml && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/setup.yaml && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/node.yaml && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/packethost/csi-packet/master/deploy/kubernetes/controller.yaml && \ 
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
-        kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
 
 install_docker && \
@@ -222,7 +200,7 @@ else
   echo "Writing config for control plane nodes..." ; \
   init_cluster_config
 fi
-metal_csi_config && \
+
 sleep 180 && \
 if [ "${configure_network}" = "no" ]; then
   echo "Not configuring network"
