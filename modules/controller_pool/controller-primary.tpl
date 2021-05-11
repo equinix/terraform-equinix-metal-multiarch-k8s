@@ -2,10 +2,36 @@
 
 export HOME=/root
 
+function load_workloads() {
+  echo ${workloads} | sed 's| |\n|'g | awk '{sub(/:/," ")}1' | tee /root/workloads.data && \
+cat << EOF > workloads.py
+import json
+
+filename = "/root/workloads.data"
+
+with open(filename) as f:
+	content = f.readlines()
+
+workloads = {}
+
+for w in content:
+	key = w.split(" ")[0]
+	value = w.split(" ")[1]
+	workloads[key] = value.replace("\n","")
+
+f = open("/root/workloads.json", "a")
+f.write(json.dumps(workloads))
+f.close()
+EOF
+
+python3 workloads.py
+
+}
+
 function install_docker() {
  echo "Installing Docker..." ; \
  apt-get update; \
- apt-get install -y docker.io && \
+ apt-get install -y docker.io jq python3 && \
  cat << EOF > /etc/docker/daemon.json
  {
    "exec-opts": ["native.cgroupdriver=systemd"]
@@ -66,10 +92,10 @@ function init_cluster {
 
 function configure_network {
   if [ "${network}" = "calico" ]; then
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat /root/workloads.json | jq .tigera_operator)
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat /root/workloads.json | jq .calico)
   else
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .flannel)
   fi
 }
 
@@ -106,14 +132,14 @@ function ceph_pre_check {
 
 function ceph_rook_basic {
   cd /root/kube ; \
-  mkdir ceph ; \
-  wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/common.yaml && \
-  wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/operator.yaml && \
+  mkdir ceph ;\ 
+  wget $(cat /root/workloads.json | jq .ceph_common) && \
+  wget $(cat /root/workloads.json | jq .ceph_operator) && \
   if [ "${count}" -gt 3 ]; then
 	echo "Node count less than 3, creating minimal cluster" ; \
-  	wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster-minimal.yaml
+  	wget $(cat /root/workloads.json | jq .ceph_cluster_minimal)
   else 
-  	wget https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster.yaml
+  	wget $(cat /root/workloads.json | jq .ceph_cluster)
   fi
   echo "Pulled Manifest for Ceph-Rook..." && \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f common.yaml ; \
@@ -183,14 +209,15 @@ function apply_workloads {
   echo "Applying workloads..." && \
 	cd /root/kube && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal-config.yaml && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml && \
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .metallb_namespace) && \
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .metallb_release) && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
 
 install_docker && \
 enable_docker && \
+load_workloads && \
 install_kube_tools && \
 sleep 30 && \
 if [ "${control_plane_node_count}" = "0" ]; then
@@ -219,7 +246,7 @@ else
   gpu_enable
 fi
 if [ "${storage}" = "openebs" ]; then
-   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://openebs.github.io/charts/openebs-operator-1.2.0.yaml
+   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .open_ebs_operator)
 elif [ "${storage}" = "ceph" ]; then
   ceph_pre_check && \
   echo "Configuring Ceph Operator" ; \
@@ -233,7 +260,7 @@ if [ "${configure_ingress}" = "yes" ]; then
   echo "Configuring Traefik..." ; \
   echo "Making controller schedulable..." ; \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master- && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .traefik )
 else
   echo "Skipping ingress..."
 fi

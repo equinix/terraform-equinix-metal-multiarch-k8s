@@ -51,6 +51,7 @@ module "controllers" {
   configure_ingress        = var.configure_ingress
   storage                  = var.storage
   configure_network        = var.configure_network
+  workloads                = var.workloads
   skip_workloads           = var.skip_workloads
   network                  = var.network
   control_plane_node_count = var.control_plane_node_count
