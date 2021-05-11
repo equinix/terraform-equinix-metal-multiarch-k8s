@@ -3,6 +3,7 @@
 export HOME=/root
 
 function load_workloads() {
+  mkdir /root/kube ; \
   echo ${workloads} | sed 's| |\n|'g | awk '{sub(/:/," ")}1' | tee /root/workloads.data && \
 cat << EOF > workloads.py
 import json
