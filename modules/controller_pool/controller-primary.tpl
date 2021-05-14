@@ -1,32 +1,14 @@
 #!/usr/bin/env bash
 
 export HOME=/root
+export WORKLOADS=$(echo ${workloads})
+mkdir $HOME/kube
 
 function load_workloads() {
-  mkdir /root/kube ; \
-  echo ${workloads} | sed 's| |\n|'g | awk '{sub(/:/," ")}1' | tee /root/workloads.data && \
-cat << EOF > workloads.py
-import json
-
-filename = "/root/workloads.data"
-
-with open(filename) as f:
-	content = f.readlines()
-
-workloads = {}
-
-for w in content:
-	key = w.split(" ")[0]
-	value = w.split(" ")[1]
-	workloads[key] = value.replace("\n","")
-
-f = open("/root/workloads.json", "a")
-f.write(json.dumps(workloads))
-f.close()
-EOF
-
-python3 workloads.py
-
+  echo "{"| tee -a $HOME/workloads.json ; for w in $WORKLOADS; do \ 
+  echo $w | sed 's| |\n|'g | awk '{sub(/:/,"\":\"")}1' | sed 's/.*/"&",/' | tee -a $HOME/workloads.json; \
+  done ; echo "\"additional\":\"\"" | tee -a $HOME/workloads.json \
+  ; echo "}" | tee -a $HOME/workloads.json
 }
 
 function install_docker() {
@@ -93,10 +75,10 @@ function init_cluster {
 
 function configure_network {
   if [ "${network}" = "calico" ]; then
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat /root/workloads.json | jq .tigera_operator)
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat /root/workloads.json | jq .calico)
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .tigera_operator)
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .calico)
   else
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .flannel)
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .flannel)
   fi
 }
 
@@ -104,13 +86,14 @@ function gpu_config {
   if [ "${count_gpu}" = "0" ]; then
 	echo "No GPU nodes to prepare for presently...moving on..."
   else
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .nvidia_gpu)
   fi
 }
 
 function metal_lb {
     echo "Configuring MetalLB for ${metal_network_cidr}..." && \
-    cat << EOF > /root/kube/metal_lb.yaml
+    cd $HOME/kube ; \
+    cat << EOF > metal_lb.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -132,28 +115,25 @@ function ceph_pre_check {
 }
 
 function ceph_rook_basic {
-  cd /root/kube ; \
+  cd $HOME/kube ; \
   mkdir ceph ;\ 
-  wget $(cat /root/workloads.json | jq .ceph_common) && \
-  wget $(cat /root/workloads.json | jq .ceph_operator) && \
-  if [ "${count}" -gt 3 ]; then
-	echo "Node count less than 3, creating minimal cluster" ; \
-  	wget $(cat /root/workloads.json | jq .ceph_cluster_minimal)
-  else 
-  	wget $(cat /root/workloads.json | jq .ceph_cluster)
-  fi
   echo "Pulled Manifest for Ceph-Rook..." && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f common.yaml ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_common) ; \
   sleep 30 ; \
   echo "Applying Ceph Operator..." ; \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f operator.yaml ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_operator) ; \
   sleep 30 ; \
   echo "Creating Ceph Cluster..." ; \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f cluster*
+  if [ "${count}" -gt 3 ]; then
+	  echo "Node count less than 3, creating minimal cluster" ; \
+  	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster_minimal)
+  else 
+  	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster)
+  fi
 }
 
 function ceph_storage_class {
-  cat << EOF > /root/kube/ceph-sc.yaml
+  cat << EOF > $HOME/kube/ceph-sc.yaml
 apiVersion: ceph.rook.io/v1
 kind: CephBlockPool
 metadata:
@@ -208,10 +188,9 @@ acert="/etc/kubernetes/pki/etcd/ca.crt" get /registry/secrets/default/personal-s
 
 function apply_workloads {
   echo "Applying workloads..." && \
-	cd /root/kube && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal-config.yaml && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .metallb_namespace) && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .metallb_release) && \
+	cd $HOME/kube && \
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
 	kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
@@ -238,8 +217,8 @@ fi
 if [ "${skip_workloads}" = "yes" ]; then
   echo "Skipping workloads..."
 else
-  apply_workloads && \
-  metal_lb
+  metal_lb && \
+  apply_workloads
 fi
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
@@ -247,13 +226,13 @@ else
   gpu_enable
 fi
 if [ "${storage}" = "openebs" ]; then
-   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .open_ebs_operator)
+   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .open_ebs_operator)
 elif [ "${storage}" = "ceph" ]; then
   ceph_pre_check && \
   echo "Configuring Ceph Operator" ; \
   ceph_rook_basic && \
   ceph_storage_class ; \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f /root/kube/ceph-sc.yaml
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/ceph-sc.yaml
 else
   echo "Skipping storage provider setup..."
 fi
@@ -261,7 +240,7 @@ if [ "${configure_ingress}" = "yes" ]; then
   echo "Configuring Traefik..." ; \
   echo "Making controller schedulable..." ; \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master- && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat /root/workloads.json | jq .traefik )
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .traefik )
 else
   echo "Skipping ingress..."
 fi
