@@ -87,3 +87,8 @@ variable "ssh_private_key_path" {
   type        = string
   description = "Path to SSH Private key to access the nodes"
 }
+
+variable "workloads" {
+  type        = map
+  description = "Workloads to be applied during provisioning."
+}

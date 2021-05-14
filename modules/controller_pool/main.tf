@@ -14,6 +14,7 @@ data "template_file" "controller-primary" {
     storage                  = var.storage
     configure_network        = var.configure_network ? "yes" : "no"
     skip_workloads           = var.skip_workloads ? "yes" : "no"
+    workloads                = jsonencode(var.workloads)
     network                  = var.network
     control_plane_node_count = var.control_plane_node_count
   }

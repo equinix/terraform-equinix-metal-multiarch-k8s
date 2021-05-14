@@ -86,6 +86,25 @@ variable "storage" {
   default     = "none"
 }
 
+variable "workloads" {
+  type        = map
+  description = "Workloads to apply on provisioning"
+  default = {
+    ceph_common          = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/common.yaml"
+    ceph_operator        = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/operator.yaml"
+    ceph_cluster_minimal = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster-minimal.yaml"
+    ceph_cluster         = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster.yaml"
+    open_ebs_operator    = "https://openebs.github.io/charts/openebs-operator-1.2.0.yaml"
+    tigera_operator      = "https://docs.projectcalico.org/manifests/tigera-operator.yaml"
+    calico               = "https://docs.projectcalico.org/manifests/custom-resources.yaml"
+    flannel              = "https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml"
+    metallb_namespace    = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml"
+    metallb_release      = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml"
+    traefik              = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"
+    nvidia_gpu           = "https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml"
+  }
+}
+
 variable "skip_workloads" {
   type        = bool
   description = "Skip Equinix Metal workloads (CSI, MetalLB)"
