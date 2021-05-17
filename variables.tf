@@ -119,20 +119,8 @@ variable "workloads" {
 
 variable "skip_workloads" {
   type        = bool
-  description = "Skip Equinix Metal workloads (CSI, MetalLB)"
+  description = "Skip Equinix Metal workloads (MetalLB)"
   default     = false
-}
-
-variable "configure_network" {
-  type        = bool
-  description = "Configures network for cluster"
-  default     = true
-}
-
-variable "network" {
-  type        = string
-  description = "Configures Kube Network (flannel or calico)"
-  default     = "calico"
 }
 
 variable "control_plane_node_count" {

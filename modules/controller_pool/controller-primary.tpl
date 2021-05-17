@@ -200,17 +200,9 @@ else
 fi
 
 sleep 180 && \
-if [ "${configure_network}" = "no" ]; then
-  echo "Not configuring network"
-else
-  configure_network
-fi
-if [ "${skip_workloads}" = "yes" ]; then
-  echo "Skipping workloads..."
-else
-  metal_lb && \
-  apply_workloads
-fi
+configure_network
+metal_lb && \
+apply_workloads
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
 else
