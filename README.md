@@ -9,7 +9,6 @@ This module can be found on the Terraform Registry at <https://registry.terrafor
 This project configures your cluster with:
 
 - [MetalLB](https://metallb.universe.tf/) using Equinix Metal elastic IPs.
-- [Equinix Metal CSI](https://github.com/packethost/csi-packet) storage driver.
 
 ## Requirements
 
@@ -30,7 +29,7 @@ Create a file called `main.tf` with the following contents:
 ```hcl
 # main.tf
 variable "auth_token" {}
-variable "project_id" {}
+variable "project_id" {} # Or omit to have the module create a project.
 
 module "multiarch-k8s" {
   source  = "equinix/multiarch-k8s/metal"
@@ -169,3 +168,15 @@ terraform apply -target=module.node_pool_gpu_green
 ```
 
 You can manage this pool discretely from your mixed-architecture pools created with the `node_pool` module above.
+
+## Applying Workloads
+
+This project can configure your CNI and storage providers. The `workloads` map variable contains the default release of Calico for `cni`, and includes Ceph and OpenEBS. These values can be overridden in your `terraform.tfvars`. 
+
+To use a different CNI, update `cni_cidr` to your desired network range, and `cni_workloads` to a comma-separated list of URLs, for example:
+
+```yaml
+    cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
+```
+
+These will be also written to `$HOME/workloads.json` on the cluster control-plane node. 
