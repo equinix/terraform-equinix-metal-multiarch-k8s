@@ -11,7 +11,20 @@ variable "facility" {
 
 variable "project_id" {
   type        = string
+  default     = "null"
   description = "Equinix Metal Project ID"
+}
+
+variable "metal_create_project" {
+  type        = bool
+  default     = true
+  description = "Create a Metal Project if this is 'true'. Else use provided 'project_id'"
+}
+
+variable "metal_project_name" {
+  type        = string
+  default     = "baremetal-multiarch-k8s"
+  description = "The name of the Metal project if 'create_project' is 'true'."
 }
 
 variable "plan_arm" {
@@ -90,14 +103,13 @@ variable "workloads" {
   type        = map
   description = "Workloads to apply on provisioning"
   default = {
+    cni_cidr             = "192.168.0.0/16"
+    cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
     ceph_common          = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/common.yaml"
     ceph_operator        = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/operator.yaml"
     ceph_cluster_minimal = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster-minimal.yaml"
     ceph_cluster         = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster.yaml"
     open_ebs_operator    = "https://openebs.github.io/charts/openebs-operator-1.2.0.yaml"
-    tigera_operator      = "https://docs.projectcalico.org/manifests/tigera-operator.yaml"
-    calico               = "https://docs.projectcalico.org/manifests/custom-resources.yaml"
-    flannel              = "https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml"
     metallb_namespace    = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml"
     metallb_release      = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml"
     traefik              = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"

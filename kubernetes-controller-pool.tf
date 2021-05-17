@@ -45,7 +45,7 @@ module "controllers" {
   facility                 = var.facility
   cluster_name             = var.cluster_name
   kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
-  project_id               = var.project_id
+  project_id               = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   auth_token               = var.auth_token
   secrets_encryption       = var.secrets_encryption
   configure_ingress        = var.configure_ingress

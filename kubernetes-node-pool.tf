@@ -11,7 +11,7 @@ module "node_pool_blue" {
   facility           = var.facility
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
-  project_id         = var.project_id
+  project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   storage            = var.storage
 }
 
@@ -26,6 +26,6 @@ module "node_pool_gpu_green" {
   facility           = var.facility
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
-  project_id         = var.project_id
+  project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   storage            = var.storage
 }
