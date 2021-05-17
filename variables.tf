@@ -101,7 +101,7 @@ variable "storage" {
 
 variable "workloads" {
   type        = map
-  description = "Workloads to apply on provisioning"
+  description = "Workloads to apply on provisioning (multiple manifests for a single key should be a comma-separated string)"
   default = {
     cni_cidr             = "192.168.0.0/16"
     cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
