@@ -112,7 +112,7 @@ variable "workloads" {
     open_ebs_operator    = "https://openebs.github.io/charts/openebs-operator-1.2.0.yaml"
     metallb_namespace    = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml"
     metallb_release      = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml"
-    traefik              = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"
+    ingress_controller   = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"
     nvidia_gpu           = "https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml"
   }
 }

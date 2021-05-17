@@ -220,12 +220,12 @@ else
   echo "Skipping storage provider setup..."
 fi
 if [ "${configure_ingress}" = "yes" ]; then
-  echo "Configuring Traefik..." ; \
   echo "Making controller schedulable..." ; \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master- && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .traefik )
+  echo "Configuring Ingress Controller..." ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .ingress_controller )
 else
-  echo "Skipping ingress..."
+  echo "Not configuring ingress controller..."
 fi
 if [ "${secrets_encryption}" = "yes" ]; then
   echo "Secrets Encrypted selected...configuring..." && \
