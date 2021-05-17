@@ -29,7 +29,7 @@ resource "metal_ssh_key" "kubernetes-on-metal" {
 }
 
 resource "metal_reserved_ip_block" "kubernetes" {
-  project_id = var.project_id
+  project_id = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   facility   = var.facility
   quantity   = 4
 }
