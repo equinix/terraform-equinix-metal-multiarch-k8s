@@ -196,9 +196,16 @@ To define custom workloads upon deploy, use the `extra` key in your `workloads` 
     metallb_release      = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml"
     ingress_controller   = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"
     nvidia_gpu           = "https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml"
-    **extra                = "https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/deployments/d09.yaml"**
+...
+```
+
+for example:
+
+```
+...
+    extra                = "https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/deployments/d09.yaml"
   }
-  ```
+```
 
   with each subsequent workload URL separated by a comma within that string, to be applied at the end of the bootstrapping process.
 
