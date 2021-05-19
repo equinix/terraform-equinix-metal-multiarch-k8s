@@ -7,7 +7,7 @@ mkdir $HOME/kube
 function load_workloads() {
   echo "{"| tee -a $HOME/workloads.json ; for w in $WORKLOADS; do \ 
   echo $w | sed 's| |\n|'g | awk '{sub(/:/,"\":\"")}1' | sed 's/.*/"&",/' | tee -a $HOME/workloads.json; \
-  done ; echo "\"additional\":\"\"" | tee -a $HOME/workloads.json \
+  done ; echo "\"applied_at\":\"$(date +%F:%H:%m:%S)\"" | tee -a $HOME/workloads.json \
   ; echo "}" | tee -a $HOME/workloads.json
 }
 
@@ -186,6 +186,17 @@ function apply_workloads {
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
 
+function apply_extra {
+  workload_manifests=$(cat $HOME/workloads.json | jq .extra | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
+  if [ "$workload_manifests" == "" ]; then
+    echo "Done."
+  else
+    for w in $workload_manifests; do 
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $w
+    done
+  fi
+}
+
 install_docker && \
 enable_docker && \
 load_workloads && \
@@ -235,3 +246,4 @@ if [ "${secrets_encryption}" = "yes" ]; then
 else
   echo "Secrets Encryption not selected...finishing..."
 fi
+apply_extra || echo "Extra workloads not applied. Finished."
