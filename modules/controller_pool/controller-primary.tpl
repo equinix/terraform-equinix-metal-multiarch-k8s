@@ -7,7 +7,7 @@ mkdir $HOME/kube
 function load_workloads() {
   echo "{"| tee -a $HOME/workloads.json ; for w in $WORKLOADS; do \ 
   echo $w | sed 's| |\n|'g | awk '{sub(/:/,"\":\"")}1' | sed 's/.*/"&",/' | tee -a $HOME/workloads.json; \
-  done ; echo "\"additional\":\"\"" | tee -a $HOME/workloads.json \
+  done ; echo "\"applied_at\":\"$(date +%F:%H:%m:%S)\"" | tee -a $HOME/workloads.json \
   ; echo "}" | tee -a $HOME/workloads.json
 }
 
@@ -38,11 +38,7 @@ function install_kube_tools {
 }
 
 function init_cluster_config {
-      if [ "${network}" = "calico" ]; then
-        export POD_NETWORK="192.168.0.0/16"
-      else
-        export POD_NETWORK="10.244.0.0/16"
-      fi
+      export CNI_CIDR="$(cat $HOME/workloads.json | jq .cni_cidr)" && \
       cat << EOF > /etc/kubeadm-config.yaml
 apiVersion: kubeadm.k8s.io/v1beta1
 kind: InitConfiguration
@@ -56,7 +52,7 @@ kind: ClusterConfiguration
 kubernetesVersion: stable
 controlPlaneEndpoint: "$(curl -s http://metadata.platformequinix.com/metadata | jq -r '.network.addresses[] | select(.public == true) | select(.management == true) | select(.address_family == 4) | .address'):6443"
 networking:
-  podSubnet: $POD_NETWORK
+  podSubnet: $CNI_CIDR
 certificatesDir: /etc/kubernetes/pki
 EOF
     kubeadm init --config=/etc/kubeadm-config.yaml ; \
@@ -64,22 +60,17 @@ EOF
 }
 
 function init_cluster {
+    export CNI_CIDR=$(cat $HOME/workloads.json | jq .cni_cidr) && \
     echo "Initializing cluster..." && \
-    if [ "${network}" = "calico" ]; then
-      kubeadm init --pod-network-cidr=192.168.0.0/16 --token "${kube_token}" 
-    else
-      kubeadm init --pod-network-cidr=10.244.0.0/16 --token "${kube_token}"
-    fi
+    kubeadm init --pod-network-cidr=$(cat $HOME/workloads.json | jq .cni_cidr | sed "s/^\([\"']\)\(.*\)\1\$/\2/g") --token "${kube_token}" 
     sysctl net.bridge.bridge-nf-call-iptables=1
 }
 
 function configure_network {
-  if [ "${network}" = "calico" ]; then
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .tigera_operator)
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .calico)
-  else
-      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .flannel)
-  fi
+  workload_manifests=$(cat $HOME/workloads.json | jq .cni_workloads | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
+  for w in $workload_manifests; do 
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $w
+  done
 }
 
 function gpu_config {
@@ -195,6 +186,17 @@ function apply_workloads {
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
 }
 
+function apply_extra {
+  workload_manifests=$(cat $HOME/workloads.json | jq .extra | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
+  if [ "$workload_manifests" == "" ]; then
+    echo "Done."
+  else
+    for w in $workload_manifests; do 
+      kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $w
+    done
+  fi
+}
+
 install_docker && \
 enable_docker && \
 load_workloads && \
@@ -209,17 +211,9 @@ else
 fi
 
 sleep 180 && \
-if [ "${configure_network}" = "no" ]; then
-  echo "Not configuring network"
-else
-  configure_network
-fi
-if [ "${skip_workloads}" = "yes" ]; then
-  echo "Skipping workloads..."
-else
-  metal_lb && \
-  apply_workloads
-fi
+configure_network
+metal_lb && \
+apply_workloads
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
 else
@@ -237,12 +231,12 @@ else
   echo "Skipping storage provider setup..."
 fi
 if [ "${configure_ingress}" = "yes" ]; then
-  echo "Configuring Traefik..." ; \
   echo "Making controller schedulable..." ; \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf taint nodes --all node-role.kubernetes.io/master- && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .traefik )
+  echo "Configuring Ingress Controller..." ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .ingress_controller )
 else
-  echo "Skipping ingress..."
+  echo "Not configuring ingress controller..."
 fi
 if [ "${secrets_encryption}" = "yes" ]; then
   echo "Secrets Encrypted selected...configuring..." && \
@@ -252,3 +246,4 @@ if [ "${secrets_encryption}" = "yes" ]; then
 else
   echo "Secrets Encryption not selected...finishing..."
 fi
+apply_extra || echo "Extra workloads not applied. Finished."

@@ -9,7 +9,6 @@ This module can be found on the Terraform Registry at <https://registry.terrafor
 This project configures your cluster with:
 
 - [MetalLB](https://metallb.universe.tf/) using Equinix Metal elastic IPs.
-- [Equinix Metal CSI](https://github.com/packethost/csi-packet) storage driver.
 
 ## Requirements
 
@@ -25,22 +24,7 @@ An alternative to using `git clone`, with the same affect of copying all of the 
 
 The following steps assume that you've chosen to use the module directly, taking advantage of the input and output variables published in the Terraform Registry.
 
-Create a file called `main.tf` with the following contents:
-
-```hcl
-# main.tf
-variable "auth_token" {}
-variable "project_id" {}
-
-module "multiarch-k8s" {
-  source  = "equinix/multiarch-k8s/metal"
-  version = "0.1.0" # Use the latest version, according to https://github.com/equinix/terraform-metal-multiarch-k8s/releases
-
-  # In a production
-  auth_token = var.auth_token
-  project_id = var.project_id
-}
-```
+A sample invocation of setting up this module can be found in [`examples/main.tf`](examples/main.tf).
 
 Store the values of these two required variables in `terraform.tfvars`:
 
@@ -55,76 +39,17 @@ Run `terraform init` and the providers and modules will be fetched and initializ
 
 ## Generating Cluster Token
 
-Tokens for cluster authentication for your node pools to your control plane must be created before instantiating the other modules:
-
-```hcl
-module "kube_token_1" {
-  # source = "./modules/kube-token"
-}
-```
+Tokens for cluster authentication for your node pools to your control plane must be created before instantiating the other modules. An example of creating a new token can be found in [`examples/token.tf`](examples/token.tf).
 
 ## High Availability for Control Plane Nodes
 
 This is not enabled by default, however, setting `control_plane_node_count` to any non-`0` value will provision a stacked control plane node and join the cluster as a master. This requires `ssh_private_key_path` be set in order to complete setup; this is used only locally to distribute certificates.
 
-Instantiating a new controller pool just requires a new instance of the `controller_pool` module:
-
-```hcl
-module "controller_pool_primary" {
-  source = "equinix/multiarch-k8s/metal/modules/controller_pool"
-
-  # Or if the modules are copied locally:
-  # source = "./modules/controller_pool"
-
-  kube_token               = module.kube_token_1.token
-  kubernetes_version       = var.kubernetes_version
-  count_x86                = var.count_x86
-  count_gpu                = var.count_gpu
-  plan_primary             = var.plan_primary
-  facility                 = var.facility
-  cluster_name             = var.cluster_name
-  kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
-  project_id               = var.project_id
-  auth_token               = var.auth_token
-  secrets_encryption       = var.secrets_encryption
-  configure_ingress        = var.configure_ingress
-  ceph                     = var.ceph
-  configure_network        = var.configure_network
-  skip_workloads           = var.skip_workloads
-  network                  = var.network
-  control_plane_node_count = var.control_plane_node_count
-  ssh_private_key_path     = var.ssh_private_key_path
-}
-```
+Instantiating a new controller pool just requires a new instance of the `controller_pool` module, as seen in [`examples/controller_pool.tf`](examples/controller_pool.tf).
 
 ## Node Pool Management
 
-To instantiate a new node pool **after initial spinup**, add a second module defining the pool using the node pool module like this:
-
-```hcl
-module "node_pool_green" {
-  source = "equinix/multiarch-k8s/metal/modules/node_pool"
-
-  # Or if the modules are copied locally:
-  # source = "./modules/node_pool"
-
-  kube_token         = module.kube_token_2.token
-  kubernetes_version = var.kubernetes_version
-  pool_label         = "green"
-  count_x86          = var.count_x86
-  count_arm          = var.count_arm
-  plan_x86           = var.plan_x86
-  plan_arm           = var.plan_arm
-  facility           = var.facility
-  cluster_name       = var.cluster_name
-  controller_address = metal_device.k8s_primary.network.0.address
-  project_id         = metal_project.kubernetes_multiarch.id
-}
-
-module "kube_token_2" {
-  source = "modules/kube-token"
-}
-```
+To instantiate a new node pool **after initial spinup**, add a second module defining the pool using the node pool module like this as seen in [`examples/new_node_pool.tf`](examples/new_node_pool.tf).
 
 In this example, the label is `green` (rather than the initial pool, `blue`) and then, generate a new `kube_token` (ensure the module name matches the `kube_token` field in the spec above, i.e. `kube_token_2`) by defining this in `1-provider.tf` (or anywhere before the node_pool instantiation):
 
@@ -144,23 +69,7 @@ At which point, you can either destroy the old pool, or taint/evict pods, etc. o
 
 ## GPU Node Pools
 
-The `gpu_node_pool` module provisions and configures GPU nodes for use with your Kubernetes cluster. The module definition requires `count_gpu` (defaults to "0"), and `plan_gpu` (defaults to `g2.large`):
-
-```hcl
-module "node_pool_gpu_green" {
-  source = "./modules/gpu_node_pool"
-
-  kube_token         = module.kube_token_1.token
-  kubernetes_version = var.kubernetes_version
-  pool_label         = "gpu_green"
-  count_gpu          = var.count_gpu
-  plan_gpu           = var.plan_gpu
-  facility           = var.facility
-  cluster_name       = var.cluster_name
-  controller_address = metal_device.k8s_primary.network.0.address
-  project_id         = var.project_id
-}
-```
+The `gpu_node_pool` module provisions and configures GPU nodes for use with your Kubernetes cluster. The module definition requires `count_gpu` (defaults to "0"), and `plan_gpu` (defaults to `g2.large`). See [`examples/gpu_node_pool.tf`](examples/gpu_node_pool.tf) for usage.
 
 and upon applying your GPU pool:
 
@@ -169,3 +78,44 @@ terraform apply -target=module.node_pool_gpu_green
 ```
 
 You can manage this pool discretely from your mixed-architecture pools created with the `node_pool` module above.
+
+## Applying Workloads
+
+This project can configure your CNI and storage providers. The `workloads` map variable contains the default release of Calico for `cni`, and includes Ceph and OpenEBS. These values can be overridden in your `terraform.tfvars`. 
+
+To use a different CNI, update `cni_cidr` to your desired network range, and `cni_workloads` to a comma-separated list of URLs, for example:
+
+```yaml
+    cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
+```
+
+These will be also written to `$HOME/workloads.json` on the cluster control-plane node. 
+
+To define custom workloads upon deploy, use the `extra` key in your `workloads` map in `terraform.tfvars`:
+
+```hcl
+{
+    cni_cidr             = "192.168.0.0/16"
+    cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
+    ceph_common          = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/common.yaml"
+    ceph_operator        = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/operator.yaml"
+    ceph_cluster_minimal = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster-minimal.yaml"
+    ceph_cluster         = "https://raw.githubusercontent.com/rook/rook/release-1.0/cluster/examples/kubernetes/ceph/cluster.yaml"
+    open_ebs_operator    = "https://openebs.github.io/charts/openebs-operator-1.2.0.yaml"
+    metallb_namespace    = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/namespace.yaml"
+    metallb_release      = "https://raw.githubusercontent.com/google/metallb/v0.9.3/manifests/metallb.yaml"
+    ingress_controller   = "https://raw.githubusercontent.com/containous/traefik/v1.7/examples/k8s/traefik-ds.yaml"
+    nvidia_gpu           = "https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/1.0.0-beta4/nvidia-device-plugin.yml"
+...
+```
+
+for example:
+
+```hcl
+...
+    extra                = "https://raw.githubusercontent.com/openshift-evangelists/kbe/main/specs/deployments/d09.yaml"
+  }
+```
+
+  with each subsequent workload URL separated by a comma within that string, to be applied at the end of the bootstrapping process.
+

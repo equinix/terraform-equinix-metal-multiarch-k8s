@@ -29,7 +29,7 @@ resource "metal_ssh_key" "kubernetes-on-metal" {
 }
 
 resource "metal_reserved_ip_block" "kubernetes" {
-  project_id = var.project_id
+  project_id = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   facility   = var.facility
   quantity   = 4
 }
@@ -45,15 +45,13 @@ module "controllers" {
   facility                 = var.facility
   cluster_name             = var.cluster_name
   kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
-  project_id               = var.project_id
+  project_id               = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
   auth_token               = var.auth_token
   secrets_encryption       = var.secrets_encryption
   configure_ingress        = var.configure_ingress
   storage                  = var.storage
-  configure_network        = var.configure_network
   workloads                = var.workloads
   skip_workloads           = var.skip_workloads
-  network                  = var.network
   control_plane_node_count = var.control_plane_node_count
   ssh_private_key_path     = local_file.cluster_private_key_pem.filename
 }

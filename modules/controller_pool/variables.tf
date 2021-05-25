@@ -38,11 +38,6 @@ variable "storage" {
   description = "Configure Storage ('ceph' or 'openebs') Operator"
 }
 
-variable "configure_network" {
-  type        = bool
-  description = "Configures network for cluster"
-}
-
 variable "configure_ingress" {
   type        = bool
   description = "Configure Traefik"
@@ -51,11 +46,6 @@ variable "configure_ingress" {
 variable "skip_workloads" {
   type        = bool
   description = "Skip Equinix Metal workloads (CSI, MetalLB)"
-}
-
-variable "network" {
-  type        = string
-  description = "Configures Kube Network (flannel or calico)"
 }
 
 variable "plan_primary" {
