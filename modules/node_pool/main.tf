@@ -20,6 +20,21 @@ resource "metal_device" "x86_node" {
 
   billing_cycle = "hourly"
   project_id    = var.project_id
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl cordon ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and cordon ${self.hostname} manually.\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl drain ${self.hostname} --delete-local-data --ignore-daemonsets || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and drain ${self.hostname} manually.\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete node ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and delete node ${self.hostname} manually.\""
+  }
 }
 
 resource "metal_device" "arm_node" {
@@ -33,4 +48,19 @@ resource "metal_device" "arm_node" {
 
   billing_cycle = "hourly"
   project_id    = var.project_id
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl cordon ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and cordon ${self.hostname} manually.\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl drain ${self.hostname} --delete-local-data --ignore-daemonsets || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and drain ${self.hostname} manually.\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete node ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and delete node ${self.hostname} manually.\""
+  }
 }

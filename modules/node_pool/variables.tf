@@ -58,3 +58,4 @@ variable "storage" {
   type        = string
   description = "Configure Storage ('ceph' or 'openebs') Operator"
 }
+
