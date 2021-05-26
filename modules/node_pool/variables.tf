@@ -59,8 +59,3 @@ variable "storage" {
   description = "Configure Storage ('ceph' or 'openebs') Operator"
 }
 
-variable "ssh_private_key_path" {
-  type        = string
-  description = "Path to SSH Private key to access the nodes"
-}
-
