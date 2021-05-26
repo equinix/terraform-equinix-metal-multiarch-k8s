@@ -67,6 +67,8 @@ terraform apply -target=module.node_pool_green
 
 At which point, you can either destroy the old pool, or taint/evict pods, etc. once this new pool connects.
 
+When destroying node pools, you must have `KUBECONFIG` set to the cluster's kubeconfig on your local `kubectl` instance in order for the cluster to [cordon, drain](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/), and delete the node from the cluster (otherwise, the node remains in a `NotReady` state, once the machine itself has been terminated).
+
 ## GPU Node Pools
 
 The `gpu_node_pool` module provisions and configures GPU nodes for use with your Kubernetes cluster. The module definition requires `count_gpu` (defaults to "0"), and `plan_gpu` (defaults to `g2.large`). See [`examples/gpu_node_pool.tf`](examples/gpu_node_pool.tf) for usage.
