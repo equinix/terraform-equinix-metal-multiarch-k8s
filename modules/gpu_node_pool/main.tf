@@ -28,7 +28,7 @@ resource "metal_device" "gpu_node" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl drain ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and drain ${self.hostname} manually.\""
+    command = "kubectl drain ${self.hostname} --delete-local-data --ignore-daemonsets || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and drain ${self.hostname} manually.\""
   }
 
   provisioner "local-exec" {
