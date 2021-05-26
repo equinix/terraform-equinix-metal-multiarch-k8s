@@ -16,26 +16,24 @@ resource "metal_device" "gpu_node" {
   plan             = var.plan_gpu
   facilities       = [var.facility]
   user_data        = data.template_file.gpu_node.rendered
-  custom_data      = "${var.controller_address},${var.ssh_private_key_path}"
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-gpu"]
 
   billing_cycle = "hourly"
   project_id    = var.project_id
 
-  connection {
-    type        = "ssh"
-    user        = "root"
-    host        = split(",", self.custom_data)[0]
-    private_key = split(",", self.custom_data)[1]
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl cordon ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and cordon ${self.hostname} manually.\""
   }
 
-  provisioner "remote-exec" {
-    when = destroy
-    inline = [
-      "kubectl --kubeconfig=/etc/kubernetes/admin.conf cordon ${self.hostname}",
-      "kubectl --kubeconfig=/etc/kubernetes/admin.conf drain ${self.hostname}",
-      "kubectl --kubeconfig=/etc/kubernetes/admin.conf delete node ${self.hostname}",
-    ]
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl drain ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and drain ${self.hostname} manually.\""
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete node ${self.hostname} || echo \"If unsuccessful, set KUBECONFIG for your local kubectl for cluster to active, and delete node ${self.hostname} manually.\""
   }
 }
 
