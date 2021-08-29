@@ -129,3 +129,9 @@ variable "control_plane_node_count" {
   description = "Number of control plane nodes (in addition to the primary controller)"
   default     = 0
 }
+
+variable "cloudprovider_external" {
+  type = bool
+  description = "Whether or not the --cloud-provider=external flag will be passed to every kubelet. (This will NOT pass the --cloudprovider flag to the kube-apiserver or kube-controller-manager)"
+  default = false
+}
