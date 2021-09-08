@@ -79,6 +79,30 @@ variable "ssh_private_key_path" {
 }
 
 variable "workloads" {
-  type        = map
+  type        = map(any)
   description = "Workloads to be applied during provisioning."
+}
+
+variable "metallb_namespace" {
+  type = "string"
+  description = "The namespace where metallb is installed"
+  default = "metallb-system"
+}
+
+variable "metallb_configmap" {
+  type = "string"
+  description = "The name of the metallb configmap to create"
+  default = "config"
+}
+
+variable "ccm_enabled" {
+  type        = bool
+  description = "Whether or not the Equnix Metal CCM will be enabled"
+  default     = false
+}
+
+variable "loadbalancer_type" {
+  type = string
+  description = "The type of Load Balancer to configure with the Equinix CCM"
+  default = "metallb"
 }

@@ -58,3 +58,9 @@ variable "storage" {
   type        = string
   description = "Configure Storage ('ceph' or 'openebs') Operator"
 }
+
+variable "ccm_enabled" {
+  type = bool
+  description = "Whether or not the Equnix Metal CCM will be enabled"
+  default = false
+}

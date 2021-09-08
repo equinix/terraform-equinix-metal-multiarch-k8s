@@ -15,6 +15,9 @@ data "template_file" "controller-primary" {
     skip_workloads           = var.skip_workloads ? "yes" : "no"
     workloads                = jsonencode(var.workloads)
     control_plane_node_count = var.control_plane_node_count
+    equinix_api_key          = var.auth_token
+    equinix_project_id       = var.project_id
+    loadbalancer             = local.loadbalancer_config
   }
 }
 

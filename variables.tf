@@ -100,7 +100,7 @@ variable "storage" {
 }
 
 variable "workloads" {
-  type        = map
+  type        = map(any)
   description = "Workloads to apply on provisioning (multiple manifests for a single key should be a comma-separated string)"
   default = {
     cni_cidr             = "192.168.0.0/16"
@@ -130,8 +130,14 @@ variable "control_plane_node_count" {
   default     = 0
 }
 
-variable "cloudprovider_external" {
-  type = bool
-  description = "Whether or not the --cloud-provider=external flag will be passed to every kubelet. (This will NOT pass the --cloudprovider flag to the kube-apiserver or kube-controller-manager)"
-  default = false
+variable "ccm_enabled" {
+  type        = bool
+  description = "Whether or not the Equnix Metal CCM will be enabled"
+  default     = false
+}
+
+variable "loadbalancer_type" {
+  type = string
+  description = "The type of Load Balancer to configure with the Equinix CCM"
+  default = "metallb"
 }
