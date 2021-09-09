@@ -35,8 +35,6 @@ function install_kube_tools {
  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
  apt-get update
  apt-get install -y kubelet=${kube_version} kubeadm=${kube_version} kubectl=${kube_version}
-
- alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:0.3.8"
 }
 
 function init_cluster_config {
@@ -110,6 +108,7 @@ EOF
 }
 
 function kube_vip {
+  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:0.3.8"
   kube-vip manifest daemonset \
   --interface $INTERFACE \
   --services \
@@ -247,6 +246,7 @@ sleep 180 && \
 configure_network
 if [ "${ccm_enabled}" = "true" ]; then
 install_ccm
+sleep 30 # The CCM will probably take a while to reconcile
 fi
 if [ "${loadbalancer_type}" = "metallb" ]; then
 metal_lb
