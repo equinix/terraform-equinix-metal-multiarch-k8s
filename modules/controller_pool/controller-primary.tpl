@@ -110,7 +110,7 @@ EOF
 function kube_vip {
   alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:0.3.8"
   kube-vip manifest daemonset \
-  --interface $INTERFACE \
+  --interface lo \
   --services \
   --bgp \
   --annotations metal.equinix.com \
