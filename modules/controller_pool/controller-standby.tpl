@@ -39,4 +39,4 @@ enable_docker && \
 install_kube_tools && \
 sleep 180 ; \
 backoff_count=`echo $((5 + RANDOM % 100))` ; \
-sleep $backoff_count
+sleep $backoff_count # Shouldn't there be a kubeadm join command somewhere? Looks like we just install tools and do nothing else

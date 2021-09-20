@@ -114,7 +114,7 @@ function kube_vip {
   --services \
   --bgp \
   --annotations metal.equinix.com \
-  --inCluster | k apply -f -
+  --inCluster | kubectl apply -f -
 }
 
 function ceph_pre_check {
@@ -222,8 +222,8 @@ stringData:
 EOF
 
 kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/equinix-ccm-config.yaml
-  RELEASE=v3.2.2
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/${RELEASE}/deployment.yaml
+RELEASE=${ccm_version}
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/${RELEASE}/deployment.yaml
 }
 
 install_docker && \

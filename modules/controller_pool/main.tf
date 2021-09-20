@@ -18,6 +18,8 @@ data "template_file" "controller-primary" {
     equinix_api_key          = var.auth_token
     equinix_project_id       = var.project_id
     loadbalancer             = local.loadbalancer_config
+    ccm_version              = var.ccm_version
+    ccm_enabled              = var.ccm_enabled
   }
 }
 

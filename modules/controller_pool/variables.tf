@@ -101,6 +101,12 @@ variable "ccm_enabled" {
   default     = false
 }
 
+variable "ccm_version" {
+  type        = string
+  description = "The semver formatted version of the Equinix Metal CCM"
+  default     = "v3.2.2"
+}
+
 variable "loadbalancer_type" {
   type        = string
   description = "The type of Load Balancer to configure with the Equinix CCM"
