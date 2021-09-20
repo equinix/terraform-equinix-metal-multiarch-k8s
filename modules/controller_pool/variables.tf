@@ -84,15 +84,15 @@ variable "workloads" {
 }
 
 variable "metallb_namespace" {
-  type = "string"
+  type        = string
   description = "The namespace where metallb is installed"
-  default = "metallb-system"
+  default     = "metallb-system"
 }
 
 variable "metallb_configmap" {
-  type = "string"
+  type        = string
   description = "The name of the metallb configmap to create"
-  default = "config"
+  default     = "config"
 }
 
 variable "ccm_enabled" {
@@ -102,7 +102,7 @@ variable "ccm_enabled" {
 }
 
 variable "loadbalancer_type" {
-  type = string
+  type        = string
   description = "The type of Load Balancer to configure with the Equinix CCM"
-  default = "metallb"
+  default     = "metallb"
 }
