@@ -108,7 +108,7 @@ EOF
 }
 
 function kube_vip {
-  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:0.3.8"
+  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8"
   kube-vip manifest daemonset \
   --interface lo \
   --services \
