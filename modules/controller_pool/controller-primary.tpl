@@ -108,7 +108,11 @@ EOF
 }
 
 function kube_vip {
-  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:0.3.8"
+  kubectl apply -f https://kube-vip.io/manifests/rbac.yaml
+  GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway");
+  ip route add 169.254.255.1 via $GATEWAY_IP
+  ip route add 169.254.255.2 via $GATEWAY_IP
+  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8"
   kube-vip manifest daemonset \
   --interface lo \
   --services \
@@ -217,13 +221,13 @@ stringData:
     {
       "apiKey": "${equinix_api_key}",
       "projectID": "${equinix_project_id}",
-      "loadbalancer": "${loadbalancer_config}"
+      "loadbalancer": "${loadbalancer}"
     }
 EOF
 
 kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/equinix-ccm-config.yaml
 RELEASE=${ccm_version}
-kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/${RELEASE}/deployment.yaml
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
 }
 
 install_docker && \

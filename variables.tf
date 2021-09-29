@@ -138,6 +138,6 @@ variable "ccm_enabled" {
 
 variable "loadbalancer_type" {
   type        = string
-  description = "The type of Load Balancer to configure with the Equinix CCM"
+  description = "The type of Load Balancer to configure with the Equinix CCM (metallb, kube-vip)"
   default     = "metallb"
 }
