@@ -82,14 +82,14 @@ function gpu_config {
 }
 
 function metal_lb {
-    echo "Configuring MetalLB for ${metal_network_cidr}..." && \
+  echo "Configuring MetalLB for ${metal_network_cidr}..." && \
     cd $HOME/kube ; \
     cat << EOF > metal_lb.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: metallb-system
-  name: config
+  namespace: ${metallb_namespace}
+  name: ${metallb_configmap}
 data:
   config: |
     address-pools:
@@ -98,6 +98,27 @@ data:
       addresses:
       - ${metal_network_cidr}
 EOF
+
+  echo "Applying MetalLB manifests..." && \
+    cd $HOME/kube && \
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+}
+
+function kube_vip {
+  kubectl apply -f https://kube-vip.io/manifests/rbac.yaml
+  GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway");
+  ip route add 169.254.255.1 via $GATEWAY_IP
+  ip route add 169.254.255.2 via $GATEWAY_IP
+  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8"
+  kube-vip manifest daemonset \
+  --interface lo \
+  --services \
+  --bgp \
+  --annotations metal.equinix.com \
+  --inCluster | kubectl apply -f -
 }
 
 function ceph_pre_check {
@@ -107,7 +128,7 @@ function ceph_pre_check {
 
 function ceph_rook_basic {
   cd $HOME/kube ; \
-  mkdir ceph ;\ 
+  mkdir ceph ;\
   echo "Pulled Manifest for Ceph-Rook..." && \
   kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_common) ; \
   sleep 30 ; \
@@ -177,15 +198,6 @@ acert="/etc/kubernetes/pki/etcd/ca.crt" get /registry/secrets/default/personal-s
   sed -i 's|    volumeMounts:|    volumeMounts:\n    - mountPath: /etc/kubernetes/secrets.conf\n      name: secretconfig\n      readOnly: true|g' /etc/kubernetes/manifests/kube-apiserver.yaml 
 }
 
-function apply_workloads {
-  echo "Applying workloads..." && \
-	cd $HOME/kube && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
-}
-
 function apply_extra {
   workload_manifests=$(cat $HOME/workloads.json | jq .extra | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
   if [ "$workload_manifests" == "" ]; then
@@ -197,11 +209,35 @@ function apply_extra {
   fi
 }
 
+function install_ccm {
+  cat << EOF > $HOME/kube/equinix-ccm-config.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metal-cloud-config
+  namespace: kube-system
+stringData:
+  cloud-sa.json: |
+    {
+      "apiKey": "${equinix_api_key}",
+      "projectID": "${equinix_project_id}",
+      "loadbalancer": "${loadbalancer}"
+    }
+EOF
+
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/equinix-ccm-config.yaml
+RELEASE=${ccm_version}
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
+}
+
 install_docker && \
 enable_docker && \
 load_workloads && \
 install_kube_tools && \
 sleep 30 && \
+if [ "${ccm_enabled}" = "true" ]; then
+  echo KUBELET_EXTRA_ARGS=\"--cloud-provider=external\" > /etc/default/kubelet
+fi
 if [ "${control_plane_node_count}" = "0" ]; then
   echo "No control plane nodes provisioned, initializing single master..." ; \
   init_cluster
@@ -212,8 +248,16 @@ fi
 
 sleep 180 && \
 configure_network
-metal_lb && \
-apply_workloads
+if [ "${ccm_enabled}" = "true" ]; then
+install_ccm
+sleep 30 # The CCM will probably take a while to reconcile
+fi
+if [ "${loadbalancer_type}" = "metallb" ]; then
+metal_lb
+fi
+if [ "${loadbalancer_type}" = "kube-vip" ]; then
+kube_vip
+fi
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
 else

@@ -6,6 +6,7 @@ data "template_file" "gpu_node" {
     primary_node_ip = var.controller_address
     kube_version    = var.kubernetes_version
     storage         = var.storage
+    ccm_enabled     = var.ccm_enabled
   }
 }
 

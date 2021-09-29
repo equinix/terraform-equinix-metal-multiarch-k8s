@@ -79,4 +79,7 @@ if [ "${storage}" = "ceph" ]; then
 fi ; \
 install_kube_tools && \
 sleep 180 && \
+if [ "${ccm_enabled}" = "true" ]; then
+  echo KUBELET_EXTRA_ARGS=\"--cloud-provider=external\" > /etc/default/kubelet
+fi
 join_cluster

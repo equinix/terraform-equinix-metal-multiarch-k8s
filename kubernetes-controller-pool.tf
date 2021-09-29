@@ -54,4 +54,6 @@ module "controllers" {
   skip_workloads           = var.skip_workloads
   control_plane_node_count = var.control_plane_node_count
   ssh_private_key_path     = local_file.cluster_private_key_pem.filename
+  ccm_enabled              = var.ccm_enabled
+  loadbalancer_type        = var.loadbalancer_type
 }

@@ -15,6 +15,14 @@ data "template_file" "controller-primary" {
     skip_workloads           = var.skip_workloads ? "yes" : "no"
     workloads                = jsonencode(var.workloads)
     control_plane_node_count = var.control_plane_node_count
+    equinix_api_key          = var.auth_token
+    equinix_project_id       = var.project_id
+    loadbalancer             = local.loadbalancer_config
+    loadbalancer_type        = var.loadbalancer_type
+    ccm_version              = var.ccm_version
+    ccm_enabled              = var.ccm_enabled
+    metallb_namespace        = var.metallb_namespace
+    metallb_configmap        = var.metallb_configmap
   }
 }
 

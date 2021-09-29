@@ -100,7 +100,7 @@ variable "storage" {
 }
 
 variable "workloads" {
-  type        = map
+  type        = map(any)
   description = "Workloads to apply on provisioning (multiple manifests for a single key should be a comma-separated string)"
   default = {
     cni_cidr             = "192.168.0.0/16"
@@ -128,4 +128,16 @@ variable "control_plane_node_count" {
   type        = number
   description = "Number of control plane nodes (in addition to the primary controller)"
   default     = 0
+}
+
+variable "ccm_enabled" {
+  type        = bool
+  description = "Whether or not the Equnix Metal CCM will be enabled"
+  default     = false
+}
+
+variable "loadbalancer_type" {
+  type        = string
+  description = "The type of Load Balancer to configure with the Equinix CCM (metallb, kube-vip)"
+  default     = "metallb"
 }
