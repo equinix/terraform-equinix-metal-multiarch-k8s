@@ -50,7 +50,7 @@ variable "storage" {
 }
 
 variable "ccm_enabled" {
-  type = bool
+  type        = bool
   description = "Whether or not the Equnix Metal CCM will be enabled"
-  default = false
+  default     = false
 }

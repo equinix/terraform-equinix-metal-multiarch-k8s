@@ -217,13 +217,13 @@ stringData:
     {
       "apiKey": "${equinix_api_key}",
       "projectID": "${equinix_project_id}",
-      "loadbalancer": "${loadbalancer_config}"
+      "loadbalancer": "${loadbalancer}"
     }
 EOF
 
 kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/equinix-ccm-config.yaml
 RELEASE=${ccm_version}
-kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/${RELEASE}/deployment.yaml
+kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
 }
 
 install_docker && \
