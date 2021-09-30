@@ -12,6 +12,7 @@ module "node_pool_green" {
   plan_x86           = var.plan_x86
   plan_arm           = var.plan_arm
   facility           = var.facility
+  metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = metal_device.k8s_primary.network.0.address
   project_id         = metal_project.kubernetes_multiarch.id

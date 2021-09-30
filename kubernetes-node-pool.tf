@@ -9,6 +9,7 @@ module "node_pool_blue" {
   plan_x86           = var.plan_x86
   plan_arm           = var.plan_arm
   facility           = var.facility
+  metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
   project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
@@ -26,6 +27,7 @@ module "node_pool_gpu_green" {
   count_gpu          = var.count_gpu
   plan_gpu           = var.plan_gpu
   facility           = var.facility
+  metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
   project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id

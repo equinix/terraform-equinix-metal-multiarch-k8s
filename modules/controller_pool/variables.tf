@@ -10,7 +10,12 @@ variable "kubernetes_version" {
 
 variable "facility" {
   type        = string
-  description = "Equinix Metal Facility"
+  description = "Equinix Metal Facility (conflicts with metro)"
+}
+
+variable "metro" {
+  type        = string
+  description = "Equinix Metal Metro (conflicts with facility)"
 }
 
 variable "cluster_name" {
@@ -26,6 +31,7 @@ variable "project_id" {
 variable "auth_token" {
   type        = string
   description = "Your Equinix Metal API token"
+  sensitive   = true
 }
 
 variable "secrets_encryption" {

@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        tf: [0.13.2]
+        tf: [0.14.10]
     steps:
     - name: Checkout from Github
       uses: actions/checkout@v2

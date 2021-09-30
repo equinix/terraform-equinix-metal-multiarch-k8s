@@ -30,7 +30,8 @@ resource "metal_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller-primary"
   operating_system = "ubuntu_18_04"
   plan             = var.plan_primary
-  facilities       = [var.facility]
+  facilities       = var.facility != "" ? [var.facility] : null
+  metro            = var.metro != "" ? var.metro : null
   user_data        = data.template_file.controller-primary.rendered
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
 
@@ -56,7 +57,8 @@ resource "metal_device" "k8s_controller_standby" {
   hostname         = format("${var.cluster_name}-controller-standby-%02d", count.index)
   operating_system = "ubuntu_18_04"
   plan             = var.plan_primary
-  facilities       = [var.facility]
+  facilities       = var.facility != "" ? [var.facility] : null
+  metro            = var.metro != "" ? var.metro : null
   user_data        = data.template_file.controller-standby.rendered
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
   billing_cycle    = "hourly"
