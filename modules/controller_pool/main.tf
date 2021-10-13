@@ -63,6 +63,27 @@ resource "metal_device" "k8s_controller_standby" {
   project_id       = var.project_id
 }
 
+resource "null_resource" "kubeconfig" {
+  provisioner "local-exec" {
+    environment = {
+      controller            = metal_device.k8s_primary.network.0.address
+      kube_token           = var.kube_token
+      ssh_private_key_path = var.ssh_private_key_path
+      local_path = path.module
+    }
+
+    command = "sh ${path.module}/assets/key_wait_transfer.sh"
+  }
+}
+
+data "local_file" "kubeconfig" {
+  filename = "${path.module}/kubeconfig"
+
+  depends_on = [
+    null_resource.kubeconfig
+  ]
+}
+
 resource "null_resource" "key_wait_transfer" {
   count = var.control_plane_node_count
 

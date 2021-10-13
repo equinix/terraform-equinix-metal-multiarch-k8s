@@ -7,3 +7,8 @@ output "controller_addresses" {
 #   description = "Control Plane Node Addresses"
 #   value = "\n${join("\n${metal_device.k8s_controller_standby.*.network.0.address}")}\n"
 # }
+
+output "kubeconfig" {
+  description = "Kubeconfig for the newly created cluster"
+  value = data.local_file.kubeconfig
+}
