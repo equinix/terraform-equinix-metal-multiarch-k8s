@@ -10,5 +10,5 @@ output "controller_addresses" {
 
 output "kubeconfig" {
   description = "Kubeconfig for the newly created cluster"
-  value = data.local_file.kubeconfig
+  value       = data.local_file.kubeconfig
 }

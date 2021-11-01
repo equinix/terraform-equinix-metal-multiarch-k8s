@@ -112,3 +112,9 @@ variable "loadbalancer_type" {
   description = "The type of Load Balancer to configure with the Equinix CCM"
   default     = "metallb"
 }
+
+variable "kubeconfig_export_path" {
+  type        = string
+  description = "The path where the cluster kubeconfig should be stored on disc"
+  default     = path.root
+}

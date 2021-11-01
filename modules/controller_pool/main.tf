@@ -66,18 +66,18 @@ resource "metal_device" "k8s_controller_standby" {
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
     environment = {
-      controller            = metal_device.k8s_primary.network.0.address
+      controller           = metal_device.k8s_primary.network.0.address
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
-      local_path = path.module
+      local_path           = var.kubeconfig_export_path
     }
 
-    command = "sh ${path.module}/assets/key_wait_transfer.sh"
+    command = "sh ${path.module}/assets/kubeconfig_copy.sh"
   }
 }
 
 data "local_file" "kubeconfig" {
-  filename = "${path.module}/kubeconfig"
+  filename = "${var.kubeconfig_export_path}/kubeconfig"
 
   depends_on = [
     null_resource.kubeconfig
