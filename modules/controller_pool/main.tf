@@ -69,7 +69,7 @@ resource "null_resource" "kubeconfig" {
       controller           = metal_device.k8s_primary.network.0.address
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
-      local_path           = var.kubeconfig_export_path
+      local_path           = path.root
     }
 
     command = "sh ${path.module}/assets/kubeconfig_copy.sh"
@@ -77,7 +77,7 @@ resource "null_resource" "kubeconfig" {
 }
 
 data "local_file" "kubeconfig" {
-  filename = "${var.kubeconfig_export_path}/kubeconfig"
+  filename = "${path.root}/kubeconfig"
 
   depends_on = [
     null_resource.kubeconfig
