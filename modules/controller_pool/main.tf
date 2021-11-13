@@ -74,6 +74,10 @@ resource "null_resource" "kubeconfig" {
 
     command = "sh ${path.module}/assets/kubeconfig_copy.sh"
   }
+
+  depends_on = [
+    null_resource.key_wait_transfer
+  ]
 }
 
 data "local_file" "kubeconfig" {
