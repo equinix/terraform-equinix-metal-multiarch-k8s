@@ -6,3 +6,8 @@ output "kubernetes_api_address" {
   description = "The address of the Kubernetes API"
   value       = module.controllers.controller_addresses
 }
+
+output "kubernetes_kubeconfig" {
+  description = "Kubeconfig for the newly created cluster"
+  value       = module.controllers.kubeconfig
+}
