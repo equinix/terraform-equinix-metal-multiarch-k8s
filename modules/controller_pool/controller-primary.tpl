@@ -112,8 +112,8 @@ function kube_vip {
   GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway");
   ip route add 169.254.255.1 via $GATEWAY_IP
   ip route add 169.254.255.2 via $GATEWAY_IP
-  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8"
-  kube-vip manifest daemonset \
+  alias kube-vip=""
+  docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8 manifest daemonset \
   --interface lo \
   --services \
   --bgp \
