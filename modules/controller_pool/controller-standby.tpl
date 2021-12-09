@@ -2,20 +2,24 @@
 
 export HOME=/root
 
-function install_docker() {
- apt-get update; \
- apt-get install -y docker.io && \
- cat << EOF > /etc/docker/daemon.json
- {
-   "exec-opts": ["native.cgroupdriver=systemd"]
- }
+function install_containerd() {
+cat <<EOF > /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
 EOF
+ modprobe overlay
+ modprobe br_netfilter
+ echo "Installing Containerd..."
+ apt-get update
+ apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
 }
 
-function enable_docker() {
- systemctl enable docker ; \
- systemctl restart docker
+function enable_containerd() {
+ systemctl daemon-reload
+ systemctl enable containerd
+ systemctl start containerd
 }
+
 
 function ceph_pre_check {
   apt install -y lvm2 ; \
@@ -31,11 +35,11 @@ function install_kube_tools() {
  apt-get install -y kubelet=${kube_version} kubeadm=${kube_version} kubectl=${kube_version}
 }
 
-install_docker && \
+install_containerd && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
-enable_docker && \
+enable_containerd && \
 install_kube_tools && \
 sleep 180 ; \
 backoff_count=`echo $((5 + RANDOM % 100))` ; \

@@ -11,25 +11,28 @@ function load_workloads() {
   ; echo "}" | tee -a $HOME/workloads.json
 }
 
-function install_docker() {
- echo "Installing Docker..." ; \
- apt-get update; \
- apt-get install -y docker.io jq python3 && \
- cat << EOF > /etc/docker/daemon.json
- {
-   "exec-opts": ["native.cgroupdriver=systemd"]
- }
+function install_containerd() {
+cat <<EOF > /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
 EOF
+ modprobe overlay
+ modprobe br_netfilter
+ echo "Installing Containerd..."
+ apt-get update
+ apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
 }
 
-function enable_docker() {
- systemctl enable docker ; \
- systemctl restart docker
+function enable_containerd() {
+ systemctl daemon-reload
+ systemctl enable containerd
+ systemctl start containerd
 }
 
 function install_kube_tools {
- echo "Installing Kubeadm tools..." ; \
- swapoff -a  && \
+ echo "Installing Kubeadm tools..." ;
+ sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+ swapoff -a
  apt-get update && apt-get install -y apt-transport-https
  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
@@ -60,10 +63,16 @@ EOF
 }
 
 function init_cluster {
-    export CNI_CIDR=$(cat $HOME/workloads.json | jq .cni_cidr) && \
+    export CNI_CIDR=$(cat $HOME/workloads.json | jq -r .cni_cidr) && \
     echo "Initializing cluster..." && \
-    kubeadm init --pod-network-cidr=$(cat $HOME/workloads.json | jq .cni_cidr | sed "s/^\([\"']\)\(.*\)\1\$/\2/g") --token "${kube_token}" 
-    sysctl net.bridge.bridge-nf-call-iptables=1
+    cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+    sysctl --system
+    kubeadm init --pod-network-cidr="$CNI_CIDR" --token "${kube_token}"
 }
 
 function configure_network {
@@ -108,8 +117,10 @@ EOF
 }
 
 function kube_vip {
+  IMAGE=ghcr.io/kube-vip/kube-vip:v0.4.0
   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://kube-vip.io/manifests/rbac.yaml
-  docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.4.0 manifest daemonset \
+  ctr i pull $IMAGE
+  ctr run --rm --net-host $IMAGE vip-$RANDOM /kube-vip manifest daemonset \
   --interface lo \
   --services \
   --bgp \
@@ -226,8 +237,8 @@ RELEASE=${ccm_version}
 kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
 }
 
-install_docker && \
-enable_docker && \
+install_containerd && \
+enable_containerd && \
 load_workloads && \
 install_kube_tools && \
 sleep 30 && \
