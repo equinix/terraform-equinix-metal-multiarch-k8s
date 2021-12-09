@@ -4,3 +4,6 @@
 *.tfvars
 examples/inventory.yaml
 examples/main.retry
+kubeconfig
+metal-key
+metal-key.pub

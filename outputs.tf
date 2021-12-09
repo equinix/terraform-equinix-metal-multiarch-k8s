@@ -10,4 +10,10 @@ output "kubernetes_api_address" {
 output "kubernetes_kubeconfig" {
   description = "Kubeconfig for the newly created cluster"
   value       = module.controllers.kubeconfig
+  sensitive   = true
+}
+
+output "kubernetes_kubeconfig_file" {
+  description = "Kubecobnfig file for the newly created cluster"
+  value       = module.controllers.kubeconfig_filename
 }

@@ -83,7 +83,7 @@ resource "null_resource" "kubeconfig" {
 }
 
 data "local_file" "kubeconfig" {
-  filename = "${path.root}/kubeconfig"
+  filename = abspath("${path.root}/kubeconfig")
 
   depends_on = [
     null_resource.kubeconfig

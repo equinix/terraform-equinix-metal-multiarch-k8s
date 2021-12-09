@@ -14,6 +14,10 @@ jobs:
     name: Integration Tests
     runs-on: ${{ matrix.os }}
     env:
+      TF_VAR_secrets_encryption: false
+      TF_VAR_metro: "sv"
+      TF_VAR_ccm_enabled: true
+      TF_VAR_loadbalancer_type: "kube-vip"
       TF_IN_AUTOMATION: 1
       TF_VERSION: ${{ matrix.tf }}
       TF_VAR_control_plane_node_count: 0
