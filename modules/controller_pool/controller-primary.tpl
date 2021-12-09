@@ -108,17 +108,16 @@ EOF
 }
 
 function kube_vip {
-  kubectl apply -f https://kube-vip.io/manifests/rbac.yaml
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://kube-vip.io/manifests/rbac.yaml
   GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway");
   ip route add 169.254.255.1 via $GATEWAY_IP
   ip route add 169.254.255.2 via $GATEWAY_IP
-  alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8"
-  kube-vip manifest daemonset \
+  docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.3.8 manifest daemonset \
   --interface lo \
   --services \
   --bgp \
   --annotations metal.equinix.com \
-  --inCluster | kubectl apply -f -
+  --inCluster | kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f -
 }
 
 function ceph_pre_check {
