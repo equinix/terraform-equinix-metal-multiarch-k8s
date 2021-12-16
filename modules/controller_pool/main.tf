@@ -97,7 +97,7 @@ resource "null_resource" "key_wait_transfer" {
     type        = "ssh"
     user        = "root"
     host        = metal_device.k8s_controller_standby[count.index].access_public_ipv4
-    private_key = var.ssh_private_key_path
+    private_key = file(var.ssh_private_key_path)
     password    = metal_device.k8s_controller_standby[count.index].root_password
   }
 
