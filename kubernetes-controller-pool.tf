@@ -58,4 +58,8 @@ module "controllers" {
   ssh_private_key_path     = abspath(local_file.cluster_private_key_pem.filename)
   ccm_enabled              = var.ccm_enabled
   loadbalancer_type        = var.loadbalancer_type
+
+  depends_on = [
+    metal_ssh_key.kubernetes-on-metal # if the primary node is created before the metal_ssh_key, then the primary node won't be accessible
+  ]
 }
