@@ -10,3 +10,7 @@ module "multiarch-k8s" {
   auth_token = var.auth_token
   project_id = var.project_id
 }
+
+provider "metal" {
+  auth_token = var.auth_token
+}
