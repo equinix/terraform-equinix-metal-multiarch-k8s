@@ -1,8 +1,5 @@
 module "controller_pool_primary" {
-  source = "equinix/multiarch-k8s/metal/modules/controller_pool"
-
-  # Or if the modules are copied locally:
-  # source = "./modules/controller_pool"
+  source = "equinix/multiarch-k8s/metal//modules/controller_pool"
 
   kube_token               = module.kube_token_1.token
   kubernetes_version       = var.kubernetes_version

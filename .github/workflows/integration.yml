@@ -31,9 +31,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         tf: [1.2.3]
-    defaults:
-      run:
-        working-directory: ./examples
     steps:
     - name: Checkout from Github
       uses: actions/checkout@v2

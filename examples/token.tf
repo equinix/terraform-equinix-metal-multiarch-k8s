@@ -1,3 +1,3 @@
 module "kube_token_1" {
-  source = "./modules/kube-token"
+  source = "equinix/multiarch-k8s/metal//modules/kube-token"
 }

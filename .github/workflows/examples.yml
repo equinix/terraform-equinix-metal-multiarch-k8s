@@ -1,4 +1,4 @@
-name: 'terraform'
+name: 'examples'
 # This workflow verifies that the Terraform configs are valid,
 # without deploying any software or infrastructure.
 # https://learn.hashicorp.com/tutorials/terraform/automate-terraform
@@ -24,6 +24,9 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         tf: [1.2.3]
+    defaults:
+      run:
+        working-directory: ./examples
     steps:
     - name: Checkout from Github
       uses: actions/checkout@v2

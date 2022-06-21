@@ -1,8 +1,5 @@
 module "node_pool_green" {
-  source = "equinix/multiarch-k8s/metal/modules/node_pool"
-
-  # Or if the modules are copied locally:
-  # source = "./modules/node_pool"
+  source = "equinix/multiarch-k8s/metal//modules/node_pool"
 
   kube_token         = module.kube_token_2.token
   kubernetes_version = var.kubernetes_version
@@ -19,5 +16,5 @@ module "node_pool_green" {
 }
 
 module "kube_token_2" {
-  source = "modules/kube-token"
+  source = "equinix/multiarch-k8s/metal//modules/kube-token"
 }

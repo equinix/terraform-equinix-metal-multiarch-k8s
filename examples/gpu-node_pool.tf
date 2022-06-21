@@ -1,5 +1,5 @@
 module "node_pool_gpu_green" {
-  source = "./modules/gpu_node_pool"
+  source = "equinix/multiarch-k8s/metal//modules/gpu_node_pool"
 
   kube_token         = module.kube_token_1.token
   kubernetes_version = var.kubernetes_version
