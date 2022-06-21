@@ -1,6 +1,7 @@
 # main.tf
-variable "auth_token" {}
-variable "project_id" {} # Or omit to have the module create a project.
+provider "metal" {
+  auth_token = var.auth_token
+}
 
 module "multiarch-k8s" {
   source  = "equinix/multiarch-k8s/metal"
@@ -11,6 +12,3 @@ module "multiarch-k8s" {
   project_id = var.project_id
 }
 
-provider "metal" {
-  auth_token = var.auth_token
-}
