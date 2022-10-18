@@ -9,6 +9,6 @@ module "node_pool_gpu_green" {
   facility           = var.facility
   metro              = var.metro
   cluster_name       = var.cluster_name
-  controller_address = metal_device.k8s_primary.network.0.address
+  controller_address = equinix_metal_device.k8s_primary.network.0.address
   project_id         = var.project_id
 }

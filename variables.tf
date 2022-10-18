@@ -28,7 +28,7 @@ variable "metal_create_project" {
   description = "Create a Metal Project if this is 'true'. Else use provided 'project_id'"
 }
 
-variable "metal_project_name" {
+variable "equinix_metal_project_name" {
   type        = string
   default     = "baremetal-multiarch-k8s"
   description = "The name of the Metal project if 'create_project' is 'true'."

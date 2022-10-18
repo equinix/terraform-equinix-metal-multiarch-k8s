@@ -12,7 +12,7 @@ module "controller_pool_primary" {
   facility                 = var.facility
   metro                    = var.metro
   cluster_name             = var.cluster_name
-  kubernetes_lb_block      = metal_reserved_ip_block.kubernetes.cidr_notation
+  kubernetes_lb_block      = equinix_metal_reserved_ip_block.kubernetes.cidr_notation
   project_id               = var.project_id
   auth_token               = var.auth_token
   secrets_encryption       = var.secrets_encryption

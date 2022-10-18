@@ -14,8 +14,8 @@ module "node_pool_green" {
   facility           = var.facility
   metro              = var.metro
   cluster_name       = var.cluster_name
-  controller_address = metal_device.k8s_primary.network.0.address
-  project_id         = metal_project.kubernetes_multiarch.id
+  controller_address = equinix_metal_device.k8s_primary.network.0.address
+  project_id         = equinix_metal_project.kubernetes_multiarch.id
 }
 
 module "kube_token_2" {
