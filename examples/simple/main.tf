@@ -44,3 +44,8 @@ module "multiarch-k8s" {
 provider "equinix" {
   auth_token = var.auth_token
 }
+
+output "multiarch-k8s" {
+  value = module.multiarch-k8s
+  sensitive = true
+}
