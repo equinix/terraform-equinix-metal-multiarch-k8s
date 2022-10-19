@@ -16,6 +16,18 @@ variable "metro" {
   default     = "da"
 }
 
+variable "count_x86" {
+  type        = string
+  description = "Number of x86 nodes"
+  default     = "3"
+}
+
+variable "count_arm" {
+  type        = string
+  description = "Number of ARM nodes"
+  default     = "0"
+}
+
 module "multiarch-k8s" {
   source = "../.."
   # source  = "equinix/multiarch-k8s/metal"
@@ -25,6 +37,8 @@ module "multiarch-k8s" {
   auth_token = var.auth_token
   project_id = var.project_id
   metro      = var.metro
+  count_arm  = var.count_arm
+  count_x86  = var.count_x86
 }
 
 provider "equinix" {
