@@ -77,7 +77,9 @@ EOF
 
 function configure_network {
   workload_manifests=$(cat $HOME/workloads.json | jq .cni_workloads | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
-  for w in $workload_manifests; do 
+  for w in $workload_manifests; do
+    # we use `kubectl create` command instead of `apply` because it fails on kubernetes verison <1.22
+    # err: The CustomResourceDefinition "installations.operator.tigera.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $w
   done
 }
