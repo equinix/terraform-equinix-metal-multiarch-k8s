@@ -46,6 +46,6 @@ provider "equinix" {
 }
 
 output "multiarch-k8s" {
-  value = module.multiarch-k8s
+  value     = module.multiarch-k8s
   sensitive = true
 }
