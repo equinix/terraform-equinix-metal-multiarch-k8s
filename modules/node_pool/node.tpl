@@ -2,24 +2,36 @@
 
 export HOME=/root
 
-function install_docker() {
- apt-get update; \
- apt-get install -y docker.io && \
- cat << EOF > /etc/docker/daemon.json
- {
-   "exec-opts": ["native.cgroupdriver=systemd"]
- }
+
+function install_containerd() {
+cat <<EOF > /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
 EOF
+ modprobe overlay
+ modprobe br_netfilter
+ echo "Installing Containerd..."
+ apt-get update
+ apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
 }
 
-function enable_docker() {
- systemctl enable docker ; \
- systemctl restart docker
+function enable_containerd() {
+ systemctl daemon-reload
+ systemctl enable containerd
+ systemctl start containerd
 }
 
 function ceph_pre_check {
   apt install -y lvm2 ; \
   modprobe rbd
+}
+
+function bgp_routes {
+    GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway")
+    # TODO use metadata peer ips
+    ip route add 169.254.255.1 via $GATEWAY_IP
+    ip route add 169.254.255.2 via $GATEWAY_IP
+    sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
 }
 
 function install_kube_tools() {
@@ -33,15 +45,23 @@ function install_kube_tools() {
 }
 
 function join_cluster() {
-	echo "Attempting to join cluster" && \
-    kubeadm join "${primary_node_ip}:6443" --token "${kube_token}" --discovery-token-unsafe-skip-ca-verification
+	echo "Attempting to join cluster"
+  cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+  sysctl --system
+  kubeadm join "${primary_node_ip}:6443" --token "${kube_token}" --discovery-token-unsafe-skip-ca-verification
 }
 
-install_docker && \
-enable_docker && \
+install_containerd && \
+enable_containerd && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
+bgp_routes && \
 install_kube_tools && \
 sleep 180 && \
 if [ "${ccm_enabled}" = "true" ]; then

@@ -11,25 +11,28 @@ function load_workloads() {
   ; echo "}" | tee -a $HOME/workloads.json
 }
 
-function install_docker() {
- echo "Installing Docker..." ; \
- apt-get update; \
- apt-get install -y docker.io jq python3 && \
- cat << EOF > /etc/docker/daemon.json
- {
-   "exec-opts": ["native.cgroupdriver=systemd"]
- }
+function install_containerd() {
+cat <<EOF > /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
 EOF
+ modprobe overlay
+ modprobe br_netfilter
+ echo "Installing Containerd..."
+ apt-get update
+ apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
 }
 
-function enable_docker() {
- systemctl enable docker ; \
- systemctl restart docker
+function enable_containerd() {
+ systemctl daemon-reload
+ systemctl enable containerd
+ systemctl start containerd
 }
 
 function install_kube_tools {
- echo "Installing Kubeadm tools..." ; \
- swapoff -a  && \
+ echo "Installing Kubeadm tools..." ;
+ sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+ swapoff -a
  apt-get update && apt-get install -y apt-transport-https
  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
@@ -60,15 +63,23 @@ EOF
 }
 
 function init_cluster {
-    export CNI_CIDR=$(cat $HOME/workloads.json | jq .cni_cidr) && \
+    export CNI_CIDR=$(cat $HOME/workloads.json | jq -r .cni_cidr) && \
     echo "Initializing cluster..." && \
-    kubeadm init --pod-network-cidr=$(cat $HOME/workloads.json | jq .cni_cidr | sed "s/^\([\"']\)\(.*\)\1\$/\2/g") --token "${kube_token}" 
-    sysctl net.bridge.bridge-nf-call-iptables=1
+    cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.ipv4.ip_forward                 = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+EOF
+
+    sysctl --system
+    kubeadm init --pod-network-cidr="$CNI_CIDR" --token "${kube_token}"
 }
 
 function configure_network {
   workload_manifests=$(cat $HOME/workloads.json | jq .cni_workloads | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
-  for w in $workload_manifests; do 
+  for w in $workload_manifests; do
+    # we use `kubectl create` command instead of `apply` because it fails on kubernetes verison <1.22
+    # err: The CustomResourceDefinition "installations.operator.tigera.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $w
   done
 }
@@ -103,13 +114,15 @@ EOF
     cd $HOME/kube && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+    # kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
 }
 
 function kube_vip {
+  IMAGE=ghcr.io/kube-vip/kube-vip:v0.4.0
   kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://kube-vip.io/manifests/rbac.yaml
-  docker run --network host --rm ghcr.io/kube-vip/kube-vip:v0.4.0 manifest daemonset \
+  ctr i pull $IMAGE
+  ctr run --rm --net-host $IMAGE vip-$RANDOM /kube-vip manifest daemonset \
   --interface lo \
   --services \
   --bgp \
@@ -205,6 +218,14 @@ function apply_extra {
   fi
 }
 
+function bgp_routes {
+    GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway")
+    # TODO use metadata peer ips
+    ip route add 169.254.255.1 via $GATEWAY_IP
+    ip route add 169.254.255.2 via $GATEWAY_IP
+    sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
+}
+
 function install_ccm {
   cat << EOF > $HOME/kube/equinix-ccm-config.yaml
 apiVersion: v1
@@ -226,8 +247,8 @@ RELEASE=${ccm_version}
 kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
 }
 
-install_docker && \
-enable_docker && \
+install_containerd && \
+enable_containerd && \
 load_workloads && \
 install_kube_tools && \
 sleep 30 && \
@@ -243,16 +264,17 @@ else
 fi
 
 sleep 180 && \
+bgp_routes && \
 configure_network
 if [ "${ccm_enabled}" = "true" ]; then
-install_ccm
-sleep 30 # The CCM will probably take a while to reconcile
-fi
-if [ "${loadbalancer_type}" = "metallb" ]; then
-metal_lb
-fi
-if [ "${loadbalancer_type}" = "kube-vip" ]; then
-kube_vip
+  install_ccm
+  sleep 30 # The CCM will probably take a while to reconcile
+  if [ "${loadbalancer_type}" = "metallb" ]; then
+    metal_lb
+  fi
+  if [ "${loadbalancer_type}" = "kube-vip" ]; then
+    kube_vip
+  fi
 fi
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."

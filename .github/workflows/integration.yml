@@ -14,23 +14,20 @@ jobs:
     name: Integration Tests
     runs-on: ${{ matrix.os }}
     env:
-      TF_VAR_secrets_encryption: false
-      TF_VAR_metro: "sv"
-      TF_VAR_ccm_enabled: true
-      TF_VAR_loadbalancer_type: "kube-vip"
+      TF_VAR_metro: "da"
       TF_IN_AUTOMATION: 1
       TF_VERSION: ${{ matrix.tf }}
       TF_VAR_control_plane_node_count: 0
       TF_VAR_count_x86: 1
       TF_VAR_count_arm: 0
-      KUBERNETES_VERSION: 1.21.0
-      TF_VAR_kubernetes_version: 1.21.0-00
-      # TODO only provide this to terraform steps that need it
       TF_VAR_auth_token: ${{ secrets.METAL_AUTH_TOKEN }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        tf: [0.14.10]
+        tf: [1.3]
+    defaults:
+      run:
+        working-directory: ./examples/simple
     steps:
     - name: Checkout from Github
       uses: actions/checkout@v2
@@ -62,20 +59,6 @@ jobs:
       run: terraform apply -input=false tfplan
     - name: Terraform Destroy
       id: destroy
-      if: ${{ always() }}
-      run: terraform destroy -input=false -auto-approve
-    - name: HA Terraform Plan
-      id: ha-plan
-      timeout-minutes: 45
-      env:
-        TF_VAR_control_plane_node_count: 1
-      run: terraform plan -out=tfplan -input=false
-    - name: HA Terraform Apply
-      id: ha-apply
-      timeout-minutes: 45
-      run: terraform apply -input=false tfplan
-    - name: HA Terraform Destroy
-      id: ha-destroy
       if: ${{ always() }}
       run: terraform destroy -input=false -auto-approve
     - name: Project Delete

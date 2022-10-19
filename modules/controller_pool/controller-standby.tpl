@@ -2,19 +2,30 @@
 
 export HOME=/root
 
-function install_docker() {
- apt-get update; \
- apt-get install -y docker.io && \
- cat << EOF > /etc/docker/daemon.json
- {
-   "exec-opts": ["native.cgroupdriver=systemd"]
- }
+function install_containerd() {
+cat <<EOF > /etc/modules-load.d/containerd.conf
+overlay
+br_netfilter
 EOF
+ modprobe overlay
+ modprobe br_netfilter
+ echo "Installing Containerd..."
+ apt-get update
+ apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
 }
 
-function enable_docker() {
- systemctl enable docker ; \
- systemctl restart docker
+function enable_containerd() {
+ systemctl daemon-reload
+ systemctl enable containerd
+ systemctl start containerd
+}
+
+function bgp_routes {
+    GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway")
+    # TODO use metadata peer ips
+    ip route add 169.254.255.1 via $GATEWAY_IP
+    ip route add 169.254.255.2 via $GATEWAY_IP
+    sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
 }
 
 function ceph_pre_check {
@@ -31,11 +42,12 @@ function install_kube_tools() {
  apt-get install -y kubelet=${kube_version} kubeadm=${kube_version} kubectl=${kube_version}
 }
 
-install_docker && \
+install_containerd && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
-enable_docker && \
+enable_containerd && \
+bgp_routes && \
 install_kube_tools && \
 sleep 180 ; \
 backoff_count=`echo $((5 + RANDOM % 100))` ; \

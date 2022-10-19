@@ -12,7 +12,7 @@ module "node_pool_blue" {
   metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
-  project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
+  project_id         = var.metal_create_project ? equinix_metal_project.new_project[0].id : var.project_id
   storage            = var.storage
   ccm_enabled        = var.ccm_enabled
 
@@ -30,7 +30,7 @@ module "node_pool_gpu_green" {
   metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
-  project_id         = var.metal_create_project ? metal_project.new_project[0].id : var.project_id
+  project_id         = var.metal_create_project ? equinix_metal_project.new_project[0].id : var.project_id
   storage            = var.storage
   ccm_enabled        = var.ccm_enabled
 }

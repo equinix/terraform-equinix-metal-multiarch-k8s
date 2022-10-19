@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     template = {
-      source = "hashicorp/random"
+      source = "hashicorp/template"
     }
   }
-  required_version = ">= 0.14"
+  required_version = ">= 1"
 }

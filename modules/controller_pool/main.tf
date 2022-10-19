@@ -5,7 +5,7 @@ data "template_file" "controller-primary" {
     kube_token               = var.kube_token
     metal_network_cidr       = var.kubernetes_lb_block
     metal_auth_token         = var.auth_token
-    metal_project_id         = var.project_id
+    equinix_metal_project_id = var.project_id
     kube_version             = var.kubernetes_version
     secrets_encryption       = var.secrets_encryption ? "yes" : "no"
     configure_ingress        = var.configure_ingress ? "yes" : "no"
@@ -26,7 +26,7 @@ data "template_file" "controller-primary" {
   }
 }
 
-resource "metal_device" "k8s_primary" {
+resource "equinix_metal_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller-primary"
   operating_system = "ubuntu_18_04"
   plan             = var.plan_primary
@@ -44,15 +44,15 @@ data "template_file" "controller-standby" {
 
   vars = {
     kube_token      = var.kube_token
-    primary_node_ip = metal_device.k8s_primary.network.0.address
+    primary_node_ip = equinix_metal_device.k8s_primary.network.0.address
     kube_version    = var.kubernetes_version
     storage         = var.storage
   }
 }
 
-resource "metal_device" "k8s_controller_standby" {
+resource "equinix_metal_device" "k8s_controller_standby" {
   count      = var.control_plane_node_count
-  depends_on = [metal_device.k8s_primary]
+  depends_on = [equinix_metal_device.k8s_primary]
 
   hostname         = format("${var.cluster_name}-controller-standby-%02d", count.index)
   operating_system = "ubuntu_18_04"
@@ -68,7 +68,7 @@ resource "metal_device" "k8s_controller_standby" {
 resource "null_resource" "kubeconfig" {
   provisioner "local-exec" {
     environment = {
-      controller           = metal_device.k8s_primary.network.0.address
+      controller           = equinix_metal_device.k8s_primary.network.0.address
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
       local_path           = path.root
@@ -96,9 +96,9 @@ resource "null_resource" "key_wait_transfer" {
   connection {
     type        = "ssh"
     user        = "root"
-    host        = metal_device.k8s_controller_standby[count.index].access_public_ipv4
+    host        = equinix_metal_device.k8s_controller_standby[count.index].access_public_ipv4
     private_key = file(var.ssh_private_key_path)
-    password    = metal_device.k8s_controller_standby[count.index].root_password
+    password    = equinix_metal_device.k8s_controller_standby[count.index].root_password
   }
 
   provisioner "remote-exec" {
@@ -107,8 +107,8 @@ resource "null_resource" "key_wait_transfer" {
 
   provisioner "local-exec" {
     environment = {
-      controller           = metal_device.k8s_primary.network.0.address
-      node_addr            = metal_device.k8s_controller_standby[count.index].access_public_ipv4
+      controller           = equinix_metal_device.k8s_primary.network.0.address
+      node_addr            = equinix_metal_device.k8s_controller_standby[count.index].access_public_ipv4
       kube_token           = var.kube_token
       ssh_private_key_path = var.ssh_private_key_path
     }
@@ -117,7 +117,7 @@ resource "null_resource" "key_wait_transfer" {
   }
 }
 
-resource "metal_ip_attachment" "kubernetes_lb_block" {
-  device_id     = metal_device.k8s_primary.id
+resource "equinix_metal_ip_attachment" "kubernetes_lb_block" {
+  device_id     = equinix_metal_device.k8s_primary.id
   cidr_notation = var.kubernetes_lb_block
 }

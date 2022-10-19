@@ -86,7 +86,7 @@ This project can configure your CNI and storage providers. The `workloads` map v
 To use a different CNI, update `cni_cidr` to your desired network range, and `cni_workloads` to a comma-separated list of URLs, for example:
 
 ```yaml
-    cni_workloads        = "https://docs.projectcalico.org/manifests/tigera-operator.yaml,https://docs.projectcalico.org/manifests/custom-resources.yaml"
+    cni_workloads        = "https://projectcalico.docs.tigera.io/archive/v3.24/manifests/tigera-operator.yaml,https://projectcalico.docs.tigera.io/archive/v3.24/manifests/custom-resources.yaml"
 ```
 
 These will be also written to `$HOME/workloads.json` on the cluster control-plane node. 
