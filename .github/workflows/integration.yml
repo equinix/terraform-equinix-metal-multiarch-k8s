@@ -61,20 +61,6 @@ jobs:
       id: destroy
       if: ${{ always() }}
       run: terraform destroy -input=false -auto-approve
-    - name: HA Terraform Plan
-      id: ha-plan
-      timeout-minutes: 45
-      env:
-        TF_VAR_control_plane_node_count: 1
-      run: terraform plan -out=tfplan -input=false
-    - name: HA Terraform Apply
-      id: ha-apply
-      timeout-minutes: 45
-      run: terraform apply -input=false tfplan
-    - name: HA Terraform Destroy
-      id: ha-destroy
-      if: ${{ always() }}
-      run: terraform destroy -input=false -auto-approve
     - name: Project Delete
       if: ${{ always() }}
       uses: displague/metal-sweeper-action@v0.3.0
