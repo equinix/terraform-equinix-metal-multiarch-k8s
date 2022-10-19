@@ -46,6 +46,14 @@ function ceph_pre_check {
   modprobe rbd
 }
 
+function bgp_routes {
+    GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway")
+    # TODO use metadata peer ips
+    ip route add 169.254.255.1 via $GATEWAY_IP
+    ip route add 169.254.255.2 via $GATEWAY_IP
+    sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
+}
+
 function install_kube_tools() {
  swapoff -a  && \
  apt-get update && apt-get install -y apt-transport-https
@@ -68,6 +76,7 @@ enable_containerd && \
 if [ "${storage}" = "ceph" ]; then
   ceph_pre_check
 fi ; \
+bgp_routes && \
 install_kube_tools && \
 sleep 180 && \
 if [ "${ccm_enabled}" = "true" ]; then

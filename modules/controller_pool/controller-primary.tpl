@@ -114,8 +114,8 @@ EOF
     cd $HOME/kube && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+    # kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
 }
 
 function kube_vip {
@@ -218,6 +218,14 @@ function apply_extra {
   fi
 }
 
+function bgp_routes {
+    GATEWAY_IP=$(curl https://metadata.platformequinix.com/metadata | jq -r ".network.addresses[] | select(.public == false) | .gateway")
+    # TODO use metadata peer ips
+    ip route add 169.254.255.1 via $GATEWAY_IP
+    ip route add 169.254.255.2 via $GATEWAY_IP
+    sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
+}
+
 function install_ccm {
   cat << EOF > $HOME/kube/equinix-ccm-config.yaml
 apiVersion: v1
@@ -256,16 +264,17 @@ else
 fi
 
 sleep 180 && \
+bgp_routes && \
 configure_network
 if [ "${ccm_enabled}" = "true" ]; then
-install_ccm
-sleep 30 # The CCM will probably take a while to reconcile
-fi
-if [ "${loadbalancer_type}" = "metallb" ]; then
-metal_lb
-fi
-if [ "${loadbalancer_type}" = "kube-vip" ]; then
-kube_vip
+  install_ccm
+  sleep 30 # The CCM will probably take a while to reconcile
+  if [ "${loadbalancer_type}" = "metallb" ]; then
+    metal_lb
+  fi
+  if [ "${loadbalancer_type}" = "kube-vip" ]; then
+    kube_vip
+  fi
 fi
 if [ "${count_gpu}" = "0" ]; then
   echo "Skipping GPU enable..."
