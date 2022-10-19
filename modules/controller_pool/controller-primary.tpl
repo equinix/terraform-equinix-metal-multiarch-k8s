@@ -69,7 +69,7 @@ function init_cluster {
 function configure_network {
   workload_manifests=$(cat $HOME/workloads.json | jq .cni_workloads | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
   for w in $workload_manifests; do 
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $w
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $w
   done
 }
 
