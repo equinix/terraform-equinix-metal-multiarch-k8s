@@ -24,6 +24,7 @@ data "template_file" "controller-primary" {
     metallb_namespace        = var.metallb_namespace
     metallb_configmap        = var.metallb_configmap
     equinix_metro            = var.metro
+    equinix_facility         = var.facility
   }
 }
 

@@ -22,6 +22,12 @@ variable "count_x86" {
   default     = "3"
 }
 
+variable "ccm_enabled" {
+  type        = string
+  description = "Whether CCM is enabled"
+  default     = "true"
+}
+
 variable "count_arm" {
   type        = string
   description = "Number of ARM nodes"
@@ -45,6 +51,7 @@ module "multiarch-k8s" {
   count_arm    = var.count_arm
   count_x86    = var.count_x86
   cluster_name = var.cluster_name
+  ccm_enabled  = var.ccm_enabled
 }
 
 provider "equinix" {
