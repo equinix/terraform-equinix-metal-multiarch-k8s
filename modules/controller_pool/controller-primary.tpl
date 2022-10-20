@@ -238,6 +238,7 @@ stringData:
     {
       "apiKey": "${equinix_api_key}",
       "projectID": "${equinix_project_id}",
+      %{ if equinix_metro != ""}"metro": "${equinix_metro}"%{ else }"facility": "${equinix_facility}"%{ endif },
       "loadbalancer": "${loadbalancer}"
     }
 EOF
