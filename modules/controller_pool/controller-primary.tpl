@@ -238,6 +238,7 @@ stringData:
     {
       "apiKey": "${equinix_api_key}",
       "projectID": "${equinix_project_id}",
+      "metro": "${equinix_metro}",
       "loadbalancer": "${loadbalancer}"
     }
 EOF
