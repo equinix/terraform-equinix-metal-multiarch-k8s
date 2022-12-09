@@ -81,7 +81,8 @@ module "cpem" {
     # Hack to make the configuration null_resource wait longer without blocking the cloudinit data source from reading
     kubeconfig = length(module.multiarch-k8s.kubernetes_kubeconfig_file) > 0 ? "/etc/kubernetes/admin.conf" : "/etc/kubernetes/admin.conf"
   }
-  metal_project_id = var.project_id
-  metal_auth_token = var.auth_token
-  loadbalancer     = "metallb"
+  metal_project_id  = var.project_id
+  metal_auth_token  = var.auth_token
+  loadbalancer_type = "metallb"
+  metro             = var.metro
 }
