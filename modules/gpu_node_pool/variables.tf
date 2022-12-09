@@ -59,3 +59,7 @@ variable "ccm_enabled" {
   description = "Whether or not the Equnix Metal CCM will be enabled"
   default     = false
 }
+
+variable "prerequisites" {
+  default = []
+}

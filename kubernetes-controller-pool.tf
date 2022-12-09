@@ -58,6 +58,7 @@ module "controllers" {
   ssh_private_key_path     = abspath(local_file.cluster_private_key_pem.filename)
   ccm_enabled              = var.ccm_enabled
   loadbalancer_type        = var.loadbalancer_type
+  prerequisites            = var.prerequisites
 
   depends_on = [
     equinix_metal_ssh_key.kubernetes-on-metal # if the primary node is created before the equinix_metal_ssh_key, then the primary node won't be accessible

@@ -118,3 +118,7 @@ variable "loadbalancer_type" {
   description = "The type of Load Balancer to configure with the Equinix CCM"
   default     = "metallb"
 }
+
+variable "prerequisites" {
+  default = []
+}

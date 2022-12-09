@@ -226,36 +226,11 @@ function bgp_routes {
     sed -i.bak -E "/^\s+post-down route del -net 10\.0\.0\.0.* gw .*$/a \ \ \ \ up ip route add 169.254.255.1 via $GATEWAY_IP || true\n    up ip route add 169.254.255.2 via $GATEWAY_IP || true\n    down ip route del 169.254.255.1 || true\n    down ip route del 169.254.255.2 || true" /etc/network/interfaces
 }
 
-function install_ccm {
-  cat << EOF > $HOME/kube/equinix-ccm-config.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: metal-cloud-config
-  namespace: kube-system
-stringData:
-  cloud-sa.json: |
-    {
-      "apiKey": "${equinix_api_key}",
-      "projectID": "${equinix_project_id}",
-      %{ if equinix_metro != ""}"metro": "${equinix_metro}"%{ else }"facility": "${equinix_facility}"%{ endif },
-      "loadbalancer": "${loadbalancer}"
-    }
-EOF
-
-kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $HOME/kube/equinix-ccm-config.yaml
-RELEASE=${ccm_version}
-kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://github.com/equinix/cloud-provider-equinix-metal/releases/download/$RELEASE/deployment.yaml
-}
-
 install_containerd && \
 enable_containerd && \
 load_workloads && \
 install_kube_tools && \
 sleep 30 && \
-if [ "${ccm_enabled}" = "true" ]; then
-  echo KUBELET_EXTRA_ARGS=\"--cloud-provider=external\" > /etc/default/kubelet
-fi
 if [ "${control_plane_node_count}" = "0" ]; then
   echo "No control plane nodes provisioned, initializing single master..." ; \
   init_cluster
@@ -268,7 +243,6 @@ sleep 180 && \
 bgp_routes && \
 configure_network
 if [ "${ccm_enabled}" = "true" ]; then
-  install_ccm
   sleep 30 # The CCM will probably take a while to reconcile
   if [ "${loadbalancer_type}" = "metallb" ]; then
     metal_lb
