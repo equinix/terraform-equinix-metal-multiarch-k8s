@@ -11,7 +11,7 @@ data "cloudinit_config" "gpu_node" {
       merge_type   = part.value.merge_type
     }
   }
-  
+
   part {
     content_type = "text/x-shellscript"
     content = templatefile("${path.module}/gpu_node.tpl", {
