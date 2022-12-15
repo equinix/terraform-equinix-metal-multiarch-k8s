@@ -65,24 +65,38 @@ output "multiarch-k8s" {
   sensitive = true
 }
 
-module "cpem" {
-  source = "../../../terraform-equinix-kubernetes-addons/modules/cloud-provider-equinix-metal"
-  module_context = {
-    k8s_cluster_endpoint = module.multiarch-k8s.kubernetes_api_address
-    equinix_metro        = ""
-    equinix_project      = ""
-    tags                 = {}
+resource "null_resource" "wait_on_create" {
+  provisioner "local-exec" {
+    # Hack to wait to run kubectl commands for CPEM to give k8s time to become available
+    # without blocking the output of prerequisites from the CPEM module
+    command = "echo '${module.multiarch-k8s.kubernetes_kubeconfig_file}' && sleep 60"
   }
-  cpem_version = "v3.5.0"
-  ssh = {
+}
+
+module "cpem" {
+  source = "../../../terraform-equinix-kubernetes-addons//modules/cloud-provider-equinix-metal"
+
+  ssh_config = {
     user        = "root"
     private_key = chomp(file("../../../terraform-equinix-metal-eks-anywhere/examples/deploy/id_rsa.sos"))
     host        = module.multiarch-k8s.kubernetes_api_address
-    # Hack to make the configuration null_resource wait longer without blocking the cloudinit data source from reading
-    kubeconfig = length(module.multiarch-k8s.kubernetes_kubeconfig_file) > 0 ? "/etc/kubernetes/admin.conf" : "/etc/kubernetes/admin.conf"
   }
-  metal_project_id  = var.project_id
-  metal_auth_token  = var.auth_token
-  loadbalancer_type = "metallb"
-  metro             = var.metro
+
+  addon_context = {
+    # See null_resource.wait_on_create above for description of this hack
+    kubeconfig = null_resource.wait_on_create.id == "" ? "" : "/etc/kubernetes/admin.conf"
+    # I don't think we're using these at the moment?
+    equinix_metro   = var.metro
+    equinix_project = var.project_id
+  }
+
+  addon_config = {
+    cpem_version      = "v3.5.0"
+    cpem_secret = {
+      projectID    = var.project_id
+      apiKey       = var.auth_token
+      loadbalancer  = "metallb:///"
+      metro         = var.metro
+    }
+  }
 }
