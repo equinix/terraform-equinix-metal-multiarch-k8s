@@ -53,7 +53,7 @@ module "multiarch-k8s" {
   count_x86            = var.count_x86
   cluster_name         = var.cluster_name
   ccm_enabled          = var.ccm_enabled
-  prerequisites        = module.cpem.prerequisites
+  prerequisites        = module.kubernetes_addons.cloud_provider_equinix_metal_prerequisites
 }
 
 provider "equinix" {
@@ -73,30 +73,27 @@ resource "null_resource" "wait_on_create" {
   }
 }
 
-module "cpem" {
-  source = "../../../terraform-equinix-kubernetes-addons//modules/cloud-provider-equinix-metal"
+module "kubernetes_addons" {
+  source = "../../../terraform-equinix-kubernetes-addons"
 
-  ssh_config = {
-    user        = "root"
-    private_key = chomp(file("../../../terraform-equinix-metal-eks-anywhere/examples/deploy/id_rsa.sos"))
-    host        = module.multiarch-k8s.kubernetes_api_address
-  }
+  ssh_user        = "root"
+  ssh_private_key = chomp(file("../../../terraform-equinix-metal-eks-anywhere/examples/deploy/id_rsa.sos"))
+  ssh_host        = module.multiarch-k8s.kubernetes_api_address
 
-  addon_context = {
-    # See null_resource.wait_on_create above for description of this hack
-    kubeconfig = null_resource.wait_on_create.id == "" ? "" : "/etc/kubernetes/admin.conf"
-    # I don't think we're using these at the moment?
-    equinix_metro   = var.metro
-    equinix_project = var.project_id
-  }
+  # See null_resource.wait_on_create above for description of this hack
+  kubeconfig_remote_path = null_resource.wait_on_create.id == "" ? "" : "/etc/kubernetes/admin.conf"
+  # These aren't used for CPEM
+  equinix_metro   = var.metro
+  equinix_project = var.project_id
 
-  addon_config = {
-    cpem_version      = "v3.5.0"
-    cpem_secret = {
+  enable_cloud_provider_equinix_metal = true
+  cloud_provider_equinix_metal_config = {
+    version      = "v3.5.0"
+    secret = {
       projectID    = var.project_id
       apiKey       = var.auth_token
-      loadbalancer  = "metallb:///"
-      metro         = var.metro
+      loadbalancer = "metallb:///"
+      metro        = var.metro
     }
   }
 }
