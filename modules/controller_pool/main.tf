@@ -30,7 +30,7 @@ data "template_file" "controller-primary" {
 
 resource "equinix_metal_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller-primary"
-  operating_system = "ubuntu_18_04"
+  operating_system = "ubuntu_22_04"
   plan             = var.plan_primary
   facilities       = var.facility != "" ? [var.facility] : null
   metro            = var.metro != "" ? var.metro : null
@@ -57,7 +57,7 @@ resource "equinix_metal_device" "k8s_controller_standby" {
   depends_on = [equinix_metal_device.k8s_primary]
 
   hostname         = format("${var.cluster_name}-controller-standby-%02d", count.index)
-  operating_system = "ubuntu_18_04"
+  operating_system = "ubuntu_22_04"
   plan             = var.plan_primary
   facilities       = var.facility != "" ? [var.facility] : null
   metro            = var.metro != "" ? var.metro : null

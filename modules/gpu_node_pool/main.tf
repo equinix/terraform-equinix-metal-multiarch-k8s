@@ -12,7 +12,7 @@ data "template_file" "gpu_node" {
 
 resource "equinix_metal_device" "gpu_node" {
   hostname         = format("${var.cluster_name}-gpu-${var.pool_label}-%02d", count.index)
-  operating_system = "ubuntu_18_04"
+  operating_system = "ubuntu_22_04"
   count            = var.count_gpu
   plan             = var.plan_gpu
   facilities       = var.facility != "" ? [var.facility] : null
