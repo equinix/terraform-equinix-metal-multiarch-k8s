@@ -1,4 +1,4 @@
-!/usr/bin/env bash
+#!/usr/bin/env bash
 
 export HOME=/root
 export WORKLOADS=$(echo ${workloads})
