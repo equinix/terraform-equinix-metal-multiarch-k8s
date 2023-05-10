@@ -16,3 +16,4 @@ examples/main.retry
 kubeconfig
 metal-key
 metal-key.pub
+.terraform.lock.hcl
