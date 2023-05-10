@@ -15,7 +15,6 @@ resource "equinix_metal_device" "x86_node" {
   operating_system = "ubuntu_18_04"
   count            = var.count_x86
   plan             = var.plan_x86
-  facilities       = var.facility != "" ? [var.facility] : null
   metro            = var.metro != "" ? var.metro : null
   user_data        = data.template_file.node.rendered
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-x86"]
@@ -29,7 +28,6 @@ resource "equinix_metal_device" "arm_node" {
   operating_system = "ubuntu_18_04"
   count            = var.count_arm
   plan             = var.plan_arm
-  facilities       = var.facility != "" ? [var.facility] : null
   metro            = var.metro
   user_data        = data.template_file.node.rendered
   tags             = ["kubernetes", "pool-${var.cluster_name}-${var.pool_label}-arm"]

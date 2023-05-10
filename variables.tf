@@ -4,15 +4,10 @@ variable "auth_token" {
   sensitive   = true
 }
 
-variable "facility" {
-  type        = string
-  description = "Equinix Metal Facility (conflicts with metro)"
-  default     = ""
-}
 
 variable "metro" {
   type        = string
-  description = "Equinix Metal Metro (conflicts with facility)"
+  description = "Equinix Metal Metro "
   default     = "dc"
 }
 
