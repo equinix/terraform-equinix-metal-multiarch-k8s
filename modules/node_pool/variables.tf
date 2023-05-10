@@ -34,14 +34,9 @@ variable "plan_arm" {
   description = "Plan for K8s ARM Nodes"
 }
 
-variable "facility" {
-  type        = string
-  description = "Equinix Metal Facility (conflicts with metro)"
-}
-
 variable "metro" {
   type        = string
-  description = "Equinix Metal Metro (conflicts with facility)"
+  description = "Equinix Metal Metro"
 }
 
 variable "cluster_name" {

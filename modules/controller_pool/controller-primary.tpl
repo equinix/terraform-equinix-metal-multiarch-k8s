@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 export HOME=/root
 export WORKLOADS=$(echo ${workloads})
@@ -238,7 +238,7 @@ stringData:
     {
       "apiKey": "${equinix_api_key}",
       "projectID": "${equinix_project_id}",
-      %{ if equinix_metro != ""}"metro": "${equinix_metro}"%{ else }"facility": "${equinix_facility}"%{ endif },
+      "equinix_metro": "${equinix_metro}",
       "loadbalancer": "${loadbalancer}"
     }
 EOF

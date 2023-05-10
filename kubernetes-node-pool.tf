@@ -8,7 +8,6 @@ module "node_pool_blue" {
   count_arm          = var.count_arm
   plan_x86           = var.plan_x86
   plan_arm           = var.plan_arm
-  facility           = var.facility
   metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses
@@ -26,7 +25,6 @@ module "node_pool_gpu_green" {
   pool_label         = "gpu-green"
   count_gpu          = var.count_gpu
   plan_gpu           = var.plan_gpu
-  facility           = var.facility
   metro              = var.metro
   cluster_name       = var.cluster_name
   controller_address = module.controllers.controller_addresses

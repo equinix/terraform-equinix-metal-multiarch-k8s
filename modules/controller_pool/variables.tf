@@ -8,14 +8,9 @@ variable "kubernetes_version" {
   description = "Version of Kubeadm to install"
 }
 
-variable "facility" {
-  type        = string
-  description = "Equinix Metal Facility (conflicts with metro)"
-}
-
 variable "metro" {
   type        = string
-  description = "Equinix Metal Metro (conflicts with facility)"
+  description = "Equinix Metal Metro"
 }
 
 variable "cluster_name" {
