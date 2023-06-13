@@ -4,9 +4,6 @@ terraform {
       source  = "equinix/equinix"
       version = "~> 1.14"
     }
-    template = {
-      source = "hashicorp/template"
-    }
   }
   required_version = ">= 1"
   provider_meta "equinix" {
