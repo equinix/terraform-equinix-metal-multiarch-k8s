@@ -29,7 +29,7 @@ resource "equinix_metal_ssh_key" "kubernetes-on-metal" {
 }
 
 resource "equinix_metal_reserved_ip_block" "kubernetes" {
-  project_id = var.metal_create_project ? equinix_metal_project.new_project[0].id : var.project_id
+  project_id = var.metal_create_project ? equinix_metal_project.new_project[0].id : data.equinix_metal_project.project.project_id
   metro      = var.metro != "" ? var.metro : null
   quantity   = 4
 }
@@ -45,7 +45,7 @@ module "controllers" {
   metro                    = var.metro
   cluster_name             = var.cluster_name
   kubernetes_lb_block      = equinix_metal_reserved_ip_block.kubernetes.cidr_notation
-  project_id               = var.metal_create_project ? equinix_metal_project.new_project[0].id : var.project_id
+  project_id               = var.metal_create_project ? equinix_metal_project.new_project[0].id : data.equinix_metal_project.project.project_id
   auth_token               = var.auth_token
   secrets_encryption       = var.secrets_encryption
   configure_ingress        = var.configure_ingress

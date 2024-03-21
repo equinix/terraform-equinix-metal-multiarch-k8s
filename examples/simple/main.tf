@@ -46,7 +46,7 @@ module "multiarch-k8s" {
   # version = "0.5.0" # Use the latest version, according to https://github.com/equinix/terraform-metal-multiarch-k8s/releases
 
   auth_token   = var.auth_token
-  project_id   = var.project_id
+  project_id   = var.metal_create_project ? equinix_metal_project.new_project[0].id : data.equinix_metal_project.project.project_id
   metro        = var.metro
   count_arm    = var.count_arm
   count_x86    = var.count_x86
