@@ -5,35 +5,40 @@ export WORKLOADS=$(echo ${workloads})
 mkdir $HOME/kube
 
 function load_workloads() {
-  echo "{"| tee -a $HOME/workloads.json ; for w in $WORKLOADS; do \ 
+  echo "{"| tee -a $HOME/workloads.json ; for w in $WORKLOADS; do \
   echo $w | sed 's| |\n|'g | awk '{sub(/:/,"\":\"")}1' | sed 's/.*/"&",/' | tee -a $HOME/workloads.json; \
   done ; echo "\"applied_at\":\"$(date +%F:%H:%m:%S)\"" | tee -a $HOME/workloads.json \
   ; echo "}" | tee -a $HOME/workloads.json
 }
 
 function install_containerd() {
-cat <<EOF > /etc/modules-load.d/containerd.conf
+  cat <<EOF > /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
 EOF
- modprobe overlay
- modprobe br_netfilter
- echo "Installing Containerd..."
- apt-get update
- apt-get install -y ca-certificates socat ebtables apt-transport-https cloud-utils prips containerd jq python3
+  modprobe overlay
+  modprobe br_netfilter
+  echo "Installing Containerd..."
+  apt-get update && apt-get install -y gnupg2 software-properties-common apt-transport-https ca-certificates socat ebtables cloud-utils prips jq python3
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+  echo "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+  apt-get update && apt-get install -y containerd.io
+  # Configure containerd
+  mkdir -p /etc/containerd
+  containerd config default | sudo tee /etc/containerd/config.toml >/dev/null 2>&1
+  sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
 }
 
 function enable_containerd() {
- systemctl daemon-reload
- systemctl enable containerd
- systemctl start containerd
+  systemctl daemon-reload
+  systemctl restart containerd
+  systemctl enable containerd
 }
 
 function install_kube_tools {
- echo "Installing Kubeadm tools..." ;
- sed -ri '/\sswap\s/s/^#?/#/' /etc/fstab
+ echo "Installing Kubeadm tools..."
+ sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
  swapoff -a
- apt-get update && apt-get install -y apt-transport-https
  curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
  echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
  apt-get update
@@ -63,23 +68,22 @@ EOF
 }
 
 function init_cluster {
-    export CNI_CIDR=$(cat $HOME/workloads.json | jq -r .cni_cidr) && \
-    echo "Initializing cluster..." && \
-    cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
-net.bridge.bridge-nf-call-iptables  = 1
-net.ipv4.ip_forward                 = 1
+  export CNI_CIDR=$(cat $HOME/workloads.json | jq -r .cni_cidr) && \
+  echo "Initializing cluster..." && \
+  tee /etc/sysctl.d/kubernetes.conf <<EOF
 net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
 EOF
 
-    sysctl --system
-    kubeadm init --pod-network-cidr="$CNI_CIDR" --token "${kube_token}"
+  sysctl --system
+  kubeadm init --pod-network-cidr="$CNI_CIDR" --token "${kube_token}"
 }
 
 function configure_network {
+  echo "Configuring network..."
   workload_manifests=$(cat $HOME/workloads.json | jq .cni_workloads | sed "s/^\([\"']\)\(.*\)\1\$/\2/g" | tr , '\n') && \
   for w in $workload_manifests; do
-    # we use `kubectl create` command instead of `apply` because it fails on kubernetes verison <1.22
-    # err: The CustomResourceDefinition "installations.operator.tigera.io" is invalid: metadata.annotations: Too long: must have at most 262144 bytes
     kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $w
   done
 }
@@ -88,7 +92,7 @@ function gpu_config {
   if [ "${count_gpu}" = "0" ]; then
 	echo "No GPU nodes to prepare for presently...moving on..."
   else
-	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .nvidia_gpu)
+	kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .nvidia_gpu)
   fi
 }
 
@@ -114,7 +118,7 @@ EOF
     cd $HOME/kube && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_namespace) && \
     kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .metallb_release) && \
-    kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f metal_lb.yaml
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f metal_lb.yaml
     # kubectl --kubeconfig=/etc/kubernetes/admin.conf create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)" && \
 }
 
@@ -139,17 +143,17 @@ function ceph_rook_basic {
   cd $HOME/kube ; \
   mkdir ceph ;\
   echo "Pulled Manifest for Ceph-Rook..." && \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_common) ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .ceph_common) ; \
   sleep 30 ; \
   echo "Applying Ceph Operator..." ; \
-  kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_operator) ; \
+  kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f $(cat $HOME/workloads.json | jq .ceph_operator) ; \
   sleep 30 ; \
   echo "Creating Ceph Cluster..." ; \
   if [ "${count}" -gt 3 ]; then
 	  echo "Node count less than 3, creating minimal cluster" ; \
-  	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster_minimal)
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster_minimal)
   else 
-  	kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster)
+    kubectl --kubeconfig=/etc/kubernetes/admin.conf create -f $(cat $HOME/workloads.json | jq .ceph_cluster)
   fi
 }
 
