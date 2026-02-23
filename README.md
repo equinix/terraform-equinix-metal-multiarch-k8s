@@ -2,6 +2,9 @@
 
 [![Build Status](https://github.com/equinix/terraform-metal-multiarch-k8s/actions/workflows/integration.yml/badge.svg)](https://github.com/equinix/terraform-metal-multiarch-k8s/actions/workflows/integration.yml)
 
+> [!WARNING]
+> With the upcoming EoL of Equinix Metal on June 30, 2026, this repo is being archived on February 28, 2026.
+
 This is a [Terraform](https://registry.terraform.io/providers/equinix/metal/latest/docs) module for deploying Kubernetes on [Equinix Metal](https://metal.equinix.com) with node pools of mixed architecture--x86 and ARM- devices, and pools of GPU devices, via the `node_pool` and `gpu_node_pool` modules for managing Kubernetes nodes.  
 
 This module can be found on the Terraform Registry at <https://registry.terraform.io/modules/equinix/multiarch-k8s/metal/latest>.
