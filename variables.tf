@@ -80,7 +80,7 @@ variable "count_gpu" {
 variable "kubernetes_version" {
   type        = string
   description = "Version of Kubeadm to install"
-  default     = "1.24.7-00"
+  default     = "1.27.1-00"
 }
 
 variable "secrets_encryption" {

@@ -1,53 +1,39 @@
-data "template_file" "controller-primary" {
-  template = file("${path.module}/controller-primary.tpl")
-
-  vars = {
-    kube_token               = var.kube_token
-    metal_network_cidr       = var.kubernetes_lb_block
-    metal_auth_token         = var.auth_token
-    equinix_metal_project_id = var.project_id
-    kube_version             = var.kubernetes_version
-    secrets_encryption       = var.secrets_encryption ? "yes" : "no"
-    configure_ingress        = var.configure_ingress ? "yes" : "no"
-    count                    = var.count_x86
-    count_gpu                = var.count_gpu
-    storage                  = var.storage
-    skip_workloads           = var.skip_workloads ? "yes" : "no"
-    workloads                = jsonencode(var.workloads)
-    control_plane_node_count = var.control_plane_node_count
-    equinix_api_key          = var.auth_token
-    equinix_project_id       = var.project_id
-    loadbalancer             = local.loadbalancer_config
-    loadbalancer_type        = var.loadbalancer_type
-    ccm_version              = var.ccm_version
-    ccm_enabled              = var.ccm_enabled
-    metallb_namespace        = var.metallb_namespace
-    metallb_configmap        = var.metallb_configmap
-    equinix_metro            = var.metro
-  }
-}
-
 resource "equinix_metal_device" "k8s_primary" {
   hostname         = "${var.cluster_name}-controller-primary"
   operating_system = "ubuntu_18_04"
   plan             = var.plan_primary
   metro            = var.metro != "" ? var.metro : null
-  user_data        = data.template_file.controller-primary.rendered
+  user_data        = templatefile(
+    "${path.module}/controller-primary.tpl",
+    {
+      kube_token               = var.kube_token
+      metal_network_cidr       = var.kubernetes_lb_block
+      metal_auth_token         = var.auth_token 
+      equinix_metal_project_id = var.project_id
+      kube_version             = var.kubernetes_version
+      secrets_encryption       = var.secrets_encryption ? "yes" : "no"
+      configure_ingress        = var.configure_ingress ? "yes" : "no"
+      count                    = var.count_x86
+      count_gpu                = var.count_gpu
+      storage                  = var.storage
+      skip_workloads           = var.skip_workloads ? "yes" : "no"
+      workloads                = jsonencode(var.workloads)
+      control_plane_node_count = var.control_plane_node_count
+      equinix_api_key          = var.auth_token
+      equinix_project_id       = var.project_id
+      loadbalancer             = local.loadbalancer_config
+      loadbalancer_type        = var.loadbalancer_type
+      ccm_version              = var.ccm_version
+      ccm_enabled              = var.ccm_enabled
+      metallb_namespace        = var.metallb_namespace
+      metallb_configmap        = var.metallb_configmap
+      equinix_metro            = var.metro
+    }
+  )
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
 
   billing_cycle = "hourly"
   project_id    = var.project_id
-}
-
-data "template_file" "controller-standby" {
-  template = file("${path.module}/controller-standby.tpl")
-
-  vars = {
-    kube_token      = var.kube_token
-    primary_node_ip = equinix_metal_device.k8s_primary.network.0.address
-    kube_version    = var.kubernetes_version
-    storage         = var.storage
-  }
 }
 
 resource "equinix_metal_device" "k8s_controller_standby" {
@@ -58,7 +44,15 @@ resource "equinix_metal_device" "k8s_controller_standby" {
   operating_system = "ubuntu_18_04"
   plan             = var.plan_primary
   metro            = var.metro != "" ? var.metro : null
-  user_data        = data.template_file.controller-standby.rendered
+  user_data        = templatefile(
+    "${path.module}/controller-standby.tpl",
+    {
+      kube_token      = var.kube_token
+      primary_node_ip = equinix_metal_device.k8s_primary.network.0.address
+      kube_version    = var.kubernetes_version
+      storage         = var.storage
+    }
+  )
   tags             = ["kubernetes", "controller-${var.cluster_name}"]
   billing_cycle    = "hourly"
   project_id       = var.project_id
