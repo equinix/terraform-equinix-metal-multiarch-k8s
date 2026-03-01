@@ -12,7 +12,7 @@ data "template_file" "node" {
 
 resource "equinix_metal_device" "x86_node" {
   hostname         = format("${var.cluster_name}-x86-${var.pool_label}-%02d", count.index)
-  operating_system = "ubuntu_18_04"
+  operating_system = "ubuntu_22_04"
   count            = var.count_x86
   plan             = var.plan_x86
   metro            = var.metro != "" ? var.metro : null
@@ -25,7 +25,7 @@ resource "equinix_metal_device" "x86_node" {
 
 resource "equinix_metal_device" "arm_node" {
   hostname         = format("${var.cluster_name}-arm-${var.pool_label}-%02d", count.index)
-  operating_system = "ubuntu_18_04"
+  operating_system = "ubuntu_22_04"
   count            = var.count_arm
   plan             = var.plan_arm
   metro            = var.metro
