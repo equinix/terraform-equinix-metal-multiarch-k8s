@@ -11,10 +11,10 @@ variable "metro" {
   default     = "dc"
 }
 
-variable "project_id" {
+variable "project_name" {
   type        = string
   default     = "null"
-  description = "Equinix Metal Project ID"
+  description = "Equinix Metal Project name"
 }
 
 variable "metal_create_project" {
